@@ -236,14 +236,26 @@ public:
     }
 };
 
+// Some GacUI builds expect GuiMain inside vl::presentation namespace.
+// Provide both global and namespaced entry points to ensure correct dispatch.
 void GuiMain()
 {
+    // Initialize networking for scanning functions
+    net_init();
     auto window = new MainWindow;
     window->MoveToScreenCenter();
     window->Show();
     GetApplication()->Run(window);
     delete window;
+    net_cleanup();
 }
+
+namespace vl { namespace presentation {
+    void GuiMain()
+    {
+        ::GuiMain();
+    }
+} }
 
 // Entry point for Windows subsystem when linking with GacUI.lib that expects WinMain
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
