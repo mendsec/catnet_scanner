@@ -65,7 +65,7 @@ void tui_draw_header(TuiState* st, const char* title) {
     HANDLE h = st->hConsole; DWORD w;
     tui_goto(1,1);
     char line[512];
-    snprintf(line, sizeof(line), "[F1] Local  [F2] Faixa  [F3] Ping  [F4] DNS  [F5] Export  [Q] Sair   | %s", title);
+    snprintf(line, sizeof(line), "[F1] Local  [F2] Range  [F3] Ping  [F4] DNS  [F5] Export  [Q] Quit   | %s", title);
     WriteConsoleA(h, line, (DWORD)strlen(line), &w, NULL);
 }
 
@@ -86,7 +86,7 @@ void tui_draw_results(TuiState* st, const DeviceList* list) {
             snprintf(tmp, sizeof(tmp), "%s%d", (p==0?"":" "), di->open_ports[p]);
             strncat(ports, tmp, sizeof(ports)-strlen(ports)-1);
         }
-        snprintf(line, sizeof(line), "%c %-15s  %-30s  MAC: %-17s  %s", (i==st->selected_index?'>' :' '), di->ip, (di->hostname[0]?di->hostname:"(desconhecido)"), (di->mac[0]?di->mac:"--"), (di->is_alive?"UP":"DOWN"));
+        snprintf(line, sizeof(line), "%c %-15s  %-30s  MAC: %-17s  %s", (i==st->selected_index?'>' :' '), di->ip, (di->hostname[0]?di->hostname:"(unknown)"), (di->mac[0]?di->mac:"--"), (di->is_alive?"UP":"DOWN"));
         WriteConsoleA(h, line, (DWORD)strlen(line), &w, NULL);
         if (di->open_ports_count > 0) {
             tui_goto(60, row);

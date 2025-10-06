@@ -1,4 +1,4 @@
-﻿param(
+param(
   [Parameter(Mandatory=$true)][string]$Text,
   [string]$LogName
 )
@@ -20,4 +20,4 @@ if (-not (Test-Path $logPath)) {
 }
 Add-Content -Path $logPath -Value $header
 Add-Content -Path $logPath -Value $Text
-Write-Host "Nota salva em $logPath"
+Write-Host "Note saved to $logPath"

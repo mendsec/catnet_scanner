@@ -1,22 +1,22 @@
 # CatNet Scanner (C)
 
-Aplicação em C com interface TUI (console) para Windows, similar a ferramentas de diagnóstico de rede. Funcionalidades:
+Windows console (TUI) network scanner written in C, similar to diagnostic tools. Features:
 
-- Escaneamento de IPs locais (sub-rede) e de faixa
-- Identificação de dispositivos (ping, DNS reverso, MAC via ARP)
-- Ping de IPs
-- Resolução de nome DNS
-- Verificação de portas abertas (lista padrão)
-- Exibição de resultados e logs com navegação via teclado
-- Exportação dos resultados para arquivo texto
+- Scan local subnet and arbitrary IP ranges
+- Identify devices (ping, reverse DNS, MAC via ARP)
+- Ping IPs
+- Resolve reverse DNS
+- Check open ports (default list)
+- Display results and logs with keyboard navigation
+- Export results to a text file
 
 ## Build
 
-Pré-requisitos: Windows com um compilador C (MSVC `cl` do Visual Studio Build Tools ou MinGW `gcc`).
+Prerequisites: Windows with a C compiler (MSVC `cl` from Visual Studio Build Tools or MinGW `gcc`).
 
 ### MSVC (cl)
 
-Execute no PowerShell:
+Run in PowerShell:
 
 ```
 powershell -ExecutionPolicy Bypass -File build.ps1 -Compiler MSVC
@@ -28,66 +28,65 @@ powershell -ExecutionPolicy Bypass -File build.ps1 -Compiler MSVC
 powershell -ExecutionPolicy Bypass -File build.ps1 -Compiler MinGW
 ```
 
-O executável será gerado em `bin\catnet_tui_scanner.exe`.
+The executable will be generated at `bin\catnet_tui_scanner.exe`.
 
 ### GacUI (GUI)
 
-Para usar a interface gráfica com GacUI:
+To use the graphical interface with GacUI:
 
-1. Obtenha e compile o GacUI (incluindo as bibliotecas `GacUI.lib` e `Vlpp.lib`).
-2. Defina variáveis de ambiente com os caminhos:
-   - `GACUI_INCLUDE`: pasta dos headers do GacUI.
-   - `GACUI_LIBS`: pasta das libs (`GacUI.lib`, `Vlpp.lib`).
-3. Compile com MSVC usando a opção `-UseGacUI`:
+1. Obtain and build GacUI (including `GacUI.lib` and `Vlpp.lib`).
+2. Set environment variables with the paths:
+   - `GACUI_INCLUDE`: folder with GacUI headers.
+   - `GACUI_LIBS`: folder with libs (`GacUI.lib`, `Vlpp.lib`).
+3. Build with MSVC using `-UseGacUI`:
 
 ```
 powershell -ExecutionPolicy Bypass -File build.ps1 -Compiler MSVC -UseGacUI -GacUIInclude "C:\\Dev\\GacUI\\Import" -GacUILibs "C:\\Dev\\GacUI\\Lib\\Release"
 ```
 
-O executável será gerado em `bin\catnet_gui_scanner.exe`.
+The executable will be generated at `bin\catnet_gui_scanner.exe`.
 
-Observação: se encontrar erros para compilar ou linkar o GacUI na sua máquina, você pode utilizar o `GacGen.exe` para gerar código a partir de recursos (XAML) do GacUI. Ainda será necessário linkar com `GacUI.lib`/`Vlpp.lib`. Caso queira, posso integrar um fluxo de geração via `GacGen` no build.
+Note: If you hit errors compiling or linking GacUI on your machine, you can use `GacGen.exe` to generate code from GacUI resources (XAML). You will still need to link `GacUI.lib`/`Vlpp.lib`. If desired, I can integrate a generation flow via `GacGen` into the build.
 
-## Uso
+## Usage
 
-Execute o programa no console do Windows:
+Run the program in the Windows console:
 
 ```
-bin\net_tui_scanner.exe
+bin\catnet_tui_scanner.exe
 ```
 
-Atalhos:
-- F1: Escanear sub-rede local
-- F2: Escanear faixa (informar início e fim)
-- F3: Ping de IP
-- F4: Resolução DNS reversa de IP
-- F5: Exportar resultados para texto
-- Setas: Navegar na lista
-- Q / Esc: Sair
+Shortcuts:
+- F1: Scan local subnet
+- F2: Scan range (enter start and end)
+- F3: Ping IP
+- F4: Reverse DNS for IP
+- F5: Export results to text
+- Arrows: Navigate the list
+- Q / Esc: Quit
 
-Resultados incluem IP, hostname (se disponível), MAC (se disponível), e portas abertas (
-22, 80, 443, 139, 445, 3389 por padrão).
+Results include IP, hostname (if available), MAC (if available), and open ports (22, 80, 443, 139, 445, 3389 by default).
 
-## Observações
+## Notes
 
-- MAC via ARP (`SendARP`) funciona apenas em hosts da mesma sub-rede.
-- O escaneamento de portas usa conexões TCP não bloqueantes com timeout.
-- O ping usa ICMP (`IcmpSendEcho`).
+- MAC via ARP (`SendARP`) works only for hosts on the same subnet.
+- Port scanning uses non-blocking TCP connections with a timeout.
+- Ping uses ICMP (`IcmpSendEcho`).
 
-## Utilitários de Logs de Conversa
+## Chat Log Utilities
 
-Este projeto mantém histórico e snapshots de conversa locais em `docs\chat_logs` (ignorados pelo Git). Há tasks no `build.ps1` para facilitar o uso:
+This project keeps local chat history and daily snapshots in `docs\chat_logs` (ignored by Git). The `build.ps1` script provides tasks to help:
 
-- Salvar nota rápida da conversa (Markdown):
-  - `powershell -ExecutionPolicy Bypass -File build.ps1 -Task chat-note -Text "Minha nota"`
-  - Opcional: nome específico do log com `-LogName "projeto-x"`
+- Save a quick chat note (Markdown):
+  - `powershell -ExecutionPolicy Bypass -File build.ps1 -Task chat-note -Text "My note"`
+  - Optional: specific log name via `-LogName "project-x"`
 
-- Salvar snapshot diário (Markdown):
+- Save a daily snapshot (Markdown):
   - `powershell -ExecutionPolicy Bypass -File build.ps1 -Task daily-snapshot`
-  - Opcional: `-LogName "projeto-x"` para agrupar por nome
+  - Optional: `-LogName "project-x"` to group by name
 
-- Limpar a pasta de logs mantendo apenas Markdown, README e anexos comuns:
+- Clean the logs folder, keeping only Markdown, README and common attachments:
   - `powershell -ExecutionPolicy Bypass -File build.ps1 -Task chat-clean`
-  - São preservados: `*.md`, `README.md` e anexos `png, jpg, jpeg, gif, svg, pdf, txt`
+  - Preserved: `*.md`, `README.md` and attachments `png, jpg, jpeg, gif, svg, pdf, txt`
 
-Para mais detalhes, consulte `docs\chat_logs\README.md`.
+For more details, see `docs\chat_logs\README.md`.

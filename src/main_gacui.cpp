@@ -3,7 +3,7 @@
 //   GACUI_INCLUDE, GACUI_LIBS
 // Build: powershell -ExecutionPolicy Bypass -File build.ps1 -Compiler MSVC -UseGacUI
 
-// Importar GacUI antes de Windows headers para evitar conflitos
+// Import GacUI before Windows headers to avoid conflicts
 #ifndef GACUI_AVAILABLE
 #include <GacUI.h>
 #define GACUI_AVAILABLE 1
@@ -23,7 +23,7 @@
 #include "export.h"
 
 // Note: This is a minimal scaffold to host the existing scanning logic in a GacUI window.
-// It creates a window with buttons (Local, Faixa, Ping, DNS, Exportar) and a list area.
+// It creates a window with buttons (Local, Range, Ping, DNS, Export) and a list area.
 // Hook implementations are straightforward and call existing C functions.
 
 using namespace vl;
@@ -109,7 +109,7 @@ private:
         dialog->GetContainerComposition()->AddChild(table);
 
         auto lbl = new GuiLabel(ThemeName::Label);
-        lbl->SetText(L"Valor:");
+        lbl->SetText(L"Value:");
         auto cellLbl = new GuiCellComposition; table->AddChild(cellLbl); cellLbl->SetSite(0,0,1,2);
         cellLbl->AddChild(lbl->GetBoundsComposition());
 
@@ -118,7 +118,7 @@ private:
         cellTb->AddChild(tb->GetBoundsComposition());
 
         auto btnOk = new GuiButton(ThemeName::Button); btnOk->SetText(L"OK");
-        auto btnCancel = new GuiButton(ThemeName::Button); btnCancel->SetText(L"Cancelar");
+        auto btnCancel = new GuiButton(ThemeName::Button); btnCancel->SetText(L"Cancel");
         auto cellOk = new GuiCellComposition; table->AddChild(cellOk); cellOk->SetSite(2,0,1,1); cellOk->AddChild(btnOk->GetBoundsComposition());
         auto cellCancel = new GuiCellComposition; table->AddChild(cellCancel); cellCancel->SetSite(2,1,1,1); cellCancel->AddChild(btnCancel->GetBoundsComposition());
 
@@ -134,8 +134,8 @@ private:
 
     void OnFaixa(GuiGraphicsComposition*, GuiEventArgs&)
     {
-        WString start = AskString(this, L"Digite IP inicial:");
-        WString end = AskString(this, L"Digite IP final:");
+        WString start = AskString(this, L"Enter start IP:");
+        WString end = AskString(this, L"Enter end IP:");
         if (start.Length() == 0 || end.Length() == 0) return;
         device_list_clear(&results);
         auto s = toUtf8(start);
@@ -146,16 +146,16 @@ private:
 
     void OnPing(GuiGraphicsComposition*, GuiEventArgs&)
     {
-        WString wip = AskString(this, L"Digite IP para ping:");
+        WString wip = AskString(this, L"Enter IP for ping:");
         if (wip.Length() == 0) return;
         auto ip8 = toUtf8(wip);
         int ok = net_ping_ipv4(ip8.c_str());
-        GetCurrentController()->DialogService()->ShowMessageBox(this->GetNativeWindow(), ok ? L"Ping OK" : L"Ping falhou", L"Ping");
+        GetCurrentController()->DialogService()->ShowMessageBox(this->GetNativeWindow(), ok ? L"Ping OK" : L"Ping failed", L"Ping");
     }
 
     void OnDns(GuiGraphicsComposition*, GuiEventArgs&)
     {
-        WString wip = AskString(this, L"Digite IP para DNS reverso:");
+        WString wip = AskString(this, L"Enter IP for reverse DNS:");
         if (wip.Length() == 0) return;
         auto ip8 = toUtf8(wip);
         char host[256] = {0};
@@ -165,7 +165,7 @@ private:
         }
         else
         {
-            GetCurrentController()->DialogService()->ShowMessageBox(this->GetNativeWindow(), L"(sem nome)", L"DNS");
+            GetCurrentController()->DialogService()->ShowMessageBox(this->GetNativeWindow(), L"(no name)", L"DNS");
         }
     }
 
@@ -173,11 +173,11 @@ private:
     {
         if (export_results_to_file("results.txt", &results))
         {
-            GetCurrentController()->DialogService()->ShowMessageBox(this->GetNativeWindow(), L"Exportado para results.txt", L"Exportar");
+            GetCurrentController()->DialogService()->ShowMessageBox(this->GetNativeWindow(), L"Exported to results.txt", L"Export");
         }
         else
         {
-            GetCurrentController()->DialogService()->ShowMessageBox(this->GetNativeWindow(), L"Falha ao exportar.", L"Exportar");
+            GetCurrentController()->DialogService()->ShowMessageBox(this->GetNativeWindow(), L"Failed to export.", L"Export");
         }
     }
 
@@ -202,10 +202,10 @@ public:
 
         // Header with buttons
         btnLocal = new GuiButton(ThemeName::Button); btnLocal->SetText(L"Local"); btnLocal->Clicked.AttachMethod(this, &MainWindow::OnLocal);
-        btnFaixa = new GuiButton(ThemeName::Button); btnFaixa->SetText(L"Faixa"); btnFaixa->Clicked.AttachMethod(this, &MainWindow::OnFaixa);
+        btnFaixa = new GuiButton(ThemeName::Button); btnFaixa->SetText(L"Range"); btnFaixa->Clicked.AttachMethod(this, &MainWindow::OnFaixa);
         btnPing = new GuiButton(ThemeName::Button); btnPing->SetText(L"Ping"); btnPing->Clicked.AttachMethod(this, &MainWindow::OnPing);
         btnDns = new GuiButton(ThemeName::Button); btnDns->SetText(L"DNS"); btnDns->Clicked.AttachMethod(this, &MainWindow::OnDns);
-        btnExport = new GuiButton(ThemeName::Button); btnExport->SetText(L"Exportar"); btnExport->Clicked.AttachMethod(this, &MainWindow::OnExport);
+        btnExport = new GuiButton(ThemeName::Button); btnExport->SetText(L"Export"); btnExport->Clicked.AttachMethod(this, &MainWindow::OnExport);
 
         auto header = new GuiStackComposition;
         header->SetDirection(GuiStackComposition::Horizontal);

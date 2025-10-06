@@ -27,7 +27,7 @@ static void scan_log_adapter(const char* msg) {
 
 int main() {
     if (!net_init()) {
-        fprintf(stderr, "Falha ao inicializar Winsock.\n");
+        fprintf(stderr, "Failed to initialize Winsock.\n");
         return 1;
     }
 
@@ -36,8 +36,8 @@ int main() {
     ScanConfig cfg; scan_config_init(&cfg);
 
     tui_draw_frame(&tui);
-    tui_draw_header(&tui, "Pronto");
-    tui_draw_logs(&tui, "Use F1..F5 para executar ações. Q/Esc para sair.");
+    tui_draw_header(&tui, "Ready");
+    tui_draw_logs(&tui, "Use F1..F5 to run actions. Q/Esc to quit.");
 
     INPUT_RECORD rec;
     HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
@@ -51,49 +51,49 @@ int main() {
             switch (vk) {
             case VK_F1: {
                 device_list_clear(&results);
-                tui_draw_header(&tui, "Escaneando sub-rede local...");
-                tui_draw_logs(&tui, "Aguarde, executando ping/DNS/portas...");
+                tui_draw_header(&tui, "Scanning local subnet...");
+                tui_draw_logs(&tui, "Please wait: running ping/DNS/port scans...");
                 g_tui_log_target = &tui; scan_set_logger(scan_log_adapter);
                 scan_subnet(&results, &cfg);
                 scan_set_logger(NULL); g_tui_log_target = NULL;
                 tui_draw_frame(&tui);
-                tui_draw_header(&tui, "Sub-rede local escaneada");
+                tui_draw_header(&tui, "Local subnet scanned");
                 tui_draw_results(&tui, &results);
-                tui_draw_logs(&tui, "Concluído.");
+                tui_draw_logs(&tui, "Done.");
                 break; }
             case VK_F2: {
                 char start[64], end[64];
-                tui_draw_logs(&tui, "Informe faixa no console (janela atual)\n");
-                printf("\nDigite IP inicial: "); fgets(start, sizeof(start), stdin); trim_newline(start);
-                printf("Digite IP final: "); fgets(end, sizeof(end), stdin); trim_newline(end);
+                tui_draw_logs(&tui, "Enter the range in the console (current window)\n");
+                printf("\nEnter start IP: "); fgets(start, sizeof(start), stdin); trim_newline(start);
+                printf("Enter end IP: "); fgets(end, sizeof(end), stdin); trim_newline(end);
                 device_list_clear(&results);
-                tui_draw_header(&tui, "Escaneando faixa...");
+                tui_draw_header(&tui, "Scanning range...");
                 g_tui_log_target = &tui; scan_set_logger(scan_log_adapter);
                 scan_range(&results, &cfg, start, end);
                 scan_set_logger(NULL); g_tui_log_target = NULL;
                 tui_draw_frame(&tui);
-                tui_draw_header(&tui, "Faixa escaneada");
+                tui_draw_header(&tui, "Range scanned");
                 tui_draw_results(&tui, &results);
-                tui_draw_logs(&tui, "Concluído.");
+                tui_draw_logs(&tui, "Done.");
                 break; }
             case VK_F3: {
                 char ip[64];
-                tui_draw_logs(&tui, "Informe IP para ping no console\n");
-                printf("\nDigite IP: "); fgets(ip, sizeof(ip), stdin); trim_newline(ip);
+                tui_draw_logs(&tui, "Enter IP for ping in the console\n");
+                printf("\nEnter IP: "); fgets(ip, sizeof(ip), stdin); trim_newline(ip);
                 int ok = net_ping_ipv4(ip);
                 char msg[256];
-                snprintf(msg, sizeof(msg), "Ping %s: %s", ip, ok?"OK":"Falhou");
+                snprintf(msg, sizeof(msg), "Ping %s: %s", ip, ok?"OK":"Failed");
                 tui_draw_logs(&tui, msg);
                 break; }
             case VK_F4: {
                 char ip[64], host[256];
-                tui_draw_logs(&tui, "Informe IP para DNS reverso no console\n");
-                printf("\nDigite IP: "); fgets(ip, sizeof(ip), stdin); trim_newline(ip);
+                tui_draw_logs(&tui, "Enter IP for reverse DNS in the console\n");
+                printf("\nEnter IP: "); fgets(ip, sizeof(ip), stdin); trim_newline(ip);
                 if (net_reverse_dns(ip, host, sizeof(host))) {
                     char msg[512]; snprintf(msg, sizeof(msg), "DNS %s => %s", ip, host);
                     tui_draw_logs(&tui, msg);
                 } else {
-                    char msg[256]; snprintf(msg, sizeof(msg), "DNS %s => (sem nome)", ip);
+                    char msg[256]; snprintf(msg, sizeof(msg), "DNS %s => (no name)", ip);
                     tui_draw_logs(&tui, msg);
                 }
                 break; }
@@ -101,10 +101,10 @@ int main() {
                 char path[MAX_PATH];
                 snprintf(path, sizeof(path), "results.txt");
                 if (export_results_to_file(path, &results)) {
-                    char msg[256]; snprintf(msg, sizeof(msg), "Exportado para %s", path);
+                    char msg[256]; snprintf(msg, sizeof(msg), "Exported to %s", path);
                     tui_draw_logs(&tui, msg);
                 } else {
-                    tui_draw_logs(&tui, "Falha ao exportar resultados.");
+                    tui_draw_logs(&tui, "Failed to export results.");
                 }
                 break; }
             case VK_UP: {
@@ -124,7 +124,7 @@ int main() {
                 break; }
             case VK_ESCAPE: running = 0; break;
             default: {
-                // Letra Q para sair
+                // 'Q' key to quit
                 CHAR ch = rec.Event.KeyEvent.uChar.AsciiChar;
                 if (ch == 'q' || ch == 'Q') running = 0;
                 break; }

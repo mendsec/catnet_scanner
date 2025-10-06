@@ -1,4 +1,4 @@
-﻿# Cleanup old workspace folder if present (runs on logon)
+# Cleanup old workspace folder if present (runs on logon)
 $oldPath = "C:\Users\fabio\Documents\trae_projects\windows_apps_tests"
 if (Test-Path $oldPath) {
   try {
@@ -50,24 +50,24 @@ $lines += '```'
 $lines += $branchStatus.TrimEnd()
 $lines += '```'
 $lines += ""
-$lines += "## Remoto"
+$lines += "## Remote"
 $lines += '```'
 $lines += $remote.TrimEnd()
 $lines += '```'
 $lines += ""
-$lines += "## Commits (hoje ou últimos 10)"
+$lines += "## Commits (today or last 10)"
 $lines += '```'
 $lines += $lastCommitsToday.TrimEnd()
 $lines += '```'
 $lines += ""
-$lines += "## Git Config (resumo)"
+$lines += "## Git Config (summary)"
 $lines += "- user.name: $userName"
 $lines += "- user.email: $userEmail"
 $lines += "- credential.helper: $credHelper"
 $lines += ""
-$lines += "## Observações"
-$lines += "- Logs de chat locais em docs/chat_logs (ignorados pelo Git)."
-$lines += "- Use scripts/save_chat_note.ps1 para adicionar notas rápidas."
+$lines += "## Notes"
+$lines += "- Local chat logs in docs/chat_logs (ignored by Git)."
+$lines += "- Use scripts/save_chat_note.ps1 to add quick notes."
 
 $md = ($lines -join "`n")
 Set-Content -Path $dailyPath -Value $md -Encoding UTF8
@@ -79,5 +79,5 @@ if (-not (Test-Path $chatLogPath)) {
   Set-Content -Path $chatLogPath -Value "# Chat Log" -Encoding UTF8
 }
 Add-Content -Path $chatLogPath -Value ("`n`n## Daily Snapshot (" + $ts + ")")
-Add-Content -Path $chatLogPath -Value ("- Arquivo: " + $dailyPath)
+Add-Content -Path $chatLogPath -Value ("- File: " + $dailyPath)
 
