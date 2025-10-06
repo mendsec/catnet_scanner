@@ -32,3 +32,5 @@ src/generated/
 
 # Private/local scripts (keep build script tracked)
 sync_gh.ps1
+# Local AI chat logs
+/docs/chat_logs/

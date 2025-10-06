@@ -5,12 +5,65 @@ Param(
   [string]$GacUIInclude,
   [string]$GacUILibs,
   [string]$GacGenPath,
-  [string]$GacResource = 'src\\resources.xml'
+  [string]$GacResource = 'src\\resources.xml',
+  [ValidateSet('build','chat-note','daily-snapshot','chat-clean')]
+  [string]$Task = 'build',
+  [string]$Text,
+  [string]$LogName
 )
 
 $ErrorActionPreference = 'Stop'
 
+# Tarefas utilitárias por projeto (chat logs)
+if ($Task -eq 'chat-note') {
+  if (-not $Text) { Write-Error "Forneça -Text para a nota de chat." }
+  & (Join-Path $PSScriptRoot 'scripts/save_chat_note.ps1') -Text $Text -LogName $LogName
+  return
+}
+elseif ($Task -eq 'daily-snapshot') {
+  & (Join-Path $PSScriptRoot 'scripts/save_daily_snapshot.ps1')
+  return
+}
+elseif ($Task -eq 'chat-clean') {
+  $projectRoot = $PSScriptRoot
+  $logDir = Join-Path $projectRoot 'docs\chat_logs'
+  if (-not (Test-Path $logDir)) { Write-Host "Diretório não existe: $logDir"; return }
+  Write-Host "Limpando arquivos desnecessários em $logDir ..."
+  $kept = @()
+  $removed = @()
+  $attachmentExts = @('.png','.jpg','.jpeg','.gif','.svg','.pdf','.txt')
+  Get-ChildItem -Path $logDir -Force -Recurse | ForEach-Object {
+    $item = $_
+    if ($item.PSIsContainer) {
+      # remover diretórios comuns irrelevantes
+      if ($item.Name -match '^(vsdbg|node_modules)$') {
+        try { Remove-Item -Path $item.FullName -Recurse -Force -ErrorAction Stop; $removed += $item.FullName } catch {}
+      }
+      return
+    }
+    $name = $item.Name
+    $keep = $false
+    if ($name -match '(^|-)chat\.md$') { $keep = $true }
+    elseif ($name -match 'daily-snapshot\.md$') { $keep = $true }
+    elseif ($name -match '^README\.md$') { $keep = $true }
+    else {
+      $ext = ([System.IO.Path]::GetExtension($name)).ToLower()
+      if ($attachmentExts -contains $ext) { $keep = $true }
+    }
+    # Remover todos os .json, .png, .svg, .js, .html, e outros artefatos não-md
+    if ($keep) { $kept += $item.FullName }
+    else {
+      try { Remove-Item -Path $item.FullName -Force -ErrorAction Stop; $removed += $item.FullName } catch {}
+    }
+  }
+  Write-Host "Mantidos: $($kept.Count) | Removidos: $($removed.Count)"
+  if ($removed.Count -gt 0) { Write-Host "Removidos:"; $removed | ForEach-Object { Write-Host $_ } }
+  return
+}
+
 New-Item -ItemType Directory -Force -Path "bin" | Out-Null
+
+if ($Task -ne 'build') { return }
 
 if ($Compiler -eq 'MSVC') {
   Write-Host "Compilando com MSVC (cl)"
