@@ -21,13 +21,7 @@ typedef struct {
     size_t capacity;
 } DeviceList;
 
-typedef struct {
-    HANDLE hConsole;
-    int width;
-    int height;
-    int selected_index;
-    int scroll_offset;
-} TuiState;
+
 
 #ifdef __cplusplus
 extern "C" {

@@ -9,12 +9,16 @@
 #define GACUI_AVAILABLE 1
 #endif
 
+// Register a default theme so controls with ThemeName can be created
+#include <Skins/DarkSkin/DarkSkin.h>
+
 #define WIN32_LEAN_AND_MEAN 1
 #define _WINSOCKAPI_
 #include <windows.h>
 #include <stdio.h>
 #include <string>
 #include <cstring>
+#include <fstream>
 
 #include "app.h"
 #include "scan.h"
@@ -42,6 +46,7 @@ private:
     GuiButton* btnDns = nullptr;
     GuiButton* btnExport = nullptr;
     GuiTextList* listView = nullptr;
+    GuiLabel* lblStatus = nullptr;
 
     DeviceList results;
     ScanConfig cfg;
@@ -194,11 +199,14 @@ public:
 
         // Layout
         auto table = new GuiTableComposition;
-        table->SetRowsAndColumns(2, 1);
+        table->SetRowsAndColumns(3, 1);
         table->SetRowOption(0, GuiCellOption::MinSizeOption());
         table->SetRowOption(1, GuiCellOption::PercentageOption(1.0));
+        table->SetRowOption(2, GuiCellOption::MinSizeOption());
         table->SetColumnOption(0, GuiCellOption::PercentageOption(1.0));
         this->GetContainerComposition()->AddChild(table);
+        table->SetAlignmentToParent(Margin(0, 0, 0, 0));
+        table->SetCellPadding(4);
 
         // Header with buttons
         btnLocal = new GuiButton(ThemeName::Button); btnLocal->SetText(L"Local"); btnLocal->Clicked.AttachMethod(this, &MainWindow::OnLocal);
@@ -209,11 +217,23 @@ public:
 
         auto header = new GuiStackComposition;
         header->SetDirection(GuiStackComposition::Horizontal);
-        auto b1 = new GuiBoundsComposition; b1->AddChild(btnLocal->GetBoundsComposition()); header->AddChild(b1);
-        auto b2 = new GuiBoundsComposition; b2->AddChild(btnFaixa->GetBoundsComposition()); header->AddChild(b2);
-        auto b3 = new GuiBoundsComposition; b3->AddChild(btnPing->GetBoundsComposition()); header->AddChild(b3);
-        auto b4 = new GuiBoundsComposition; b4->AddChild(btnDns->GetBoundsComposition()); header->AddChild(b4);
-        auto b5 = new GuiBoundsComposition; b5->AddChild(btnExport->GetBoundsComposition()); header->AddChild(b5);
+        header->SetAlignmentToParent(Margin(4, 4, 4, 4));
+        // Use stack items to ensure proper layout of controls
+        {
+            auto i = new GuiStackItemComposition; i->AddChild(btnLocal->GetBoundsComposition()); header->AddChild(i);
+        }
+        {
+            auto i = new GuiStackItemComposition; i->AddChild(btnFaixa->GetBoundsComposition()); header->AddChild(i);
+        }
+        {
+            auto i = new GuiStackItemComposition; i->AddChild(btnPing->GetBoundsComposition()); header->AddChild(i);
+        }
+        {
+            auto i = new GuiStackItemComposition; i->AddChild(btnDns->GetBoundsComposition()); header->AddChild(i);
+        }
+        {
+            auto i = new GuiStackItemComposition; i->AddChild(btnExport->GetBoundsComposition()); header->AddChild(i);
+        }
 
         auto cellHeader = new GuiCellComposition;
         table->AddChild(cellHeader);
@@ -225,7 +245,20 @@ public:
         auto cellBody = new GuiCellComposition;
         table->AddChild(cellBody);
         cellBody->SetSite(1, 0, 1, 1);
+        listView->GetBoundsComposition()->SetAlignmentToParent(Margin(4, 4, 4, 4));
         cellBody->AddChild(listView->GetBoundsComposition());
+
+        // Initial message in the list
+        listView->GetItems().Add(Ptr<list::TextItem>(new list::TextItem(L"Ready to scan")));
+
+        // Status bar
+        lblStatus = new GuiLabel(ThemeName::Label);
+        lblStatus->SetText(L"Ready");
+        auto cellStatus = new GuiCellComposition;
+        table->AddChild(cellStatus);
+        cellStatus->SetSite(2, 0, 1, 1);
+        lblStatus->GetBoundsComposition()->SetAlignmentToParent(Margin(4, 4, 4, 4));
+        cellStatus->AddChild(lblStatus->GetBoundsComposition());
 
         // Default close behavior: closing the main window ends the run loop
     }
@@ -242,10 +275,24 @@ void GuiMain()
 {
     // Initialize networking for scanning functions
     net_init();
+    // Register a default theme to enable ThemeName-based controls
+    vl::presentation::theme::RegisterTheme(vl::Ptr(new darkskin::Theme));
+    {
+        std::ofstream f("gacui_log.txt", std::ios::app);
+        f << "GuiMain start" << std::endl;
+    }
     auto window = new MainWindow;
     window->MoveToScreenCenter();
     window->Show();
+    {
+        std::ofstream f("gacui_log.txt", std::ios::app);
+        f << "Before Run" << std::endl;
+    }
     GetApplication()->Run(window);
+    {
+        std::ofstream f("gacui_log.txt", std::ios::app);
+        f << "After Run" << std::endl;
+    }
     delete window;
     net_cleanup();
 }
@@ -257,11 +304,11 @@ namespace vl { namespace presentation {
     }
 } }
 
-// Entry point for Windows subsystem when linking with GacUI.lib that expects WinMain
+// Entry point: initialize GacUI with GDI renderer and dispatch GuiMain via framework
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 {
-    // Initialize GacUI with GDI renderer to avoid extra Direct2D dependencies
+    // Use GDI renderer for broader compatibility and fewer D2D/DWrite deps
     SetupWindowsGDIRenderer();
-    GuiApplicationMain();
+    ::GuiMain();
     return 0;
 }

@@ -1,7 +1,6 @@
 Param(
-  [ValidateSet('MSVC','MinGW')]
+  [ValidateSet('MSVC')]
   [string]$Compiler = 'MSVC',
-  [switch]$UseGacUI,
   [string]$GacUIInclude,
   [string]$GacUILibs,
   [string]$GacGenPath,
@@ -67,53 +66,41 @@ if ($Task -ne 'build') { return }
 
 if ($Compiler -eq 'MSVC') {
   Write-Host "Building with MSVC (cl)"
+  # Compilação apenas da GUI (GacUI)
   $files = @(Get-ChildItem -Recurse -Filter *.c | ForEach-Object { $_.FullName })
   $includes = ''
   $defines = '/D _CRT_SECURE_NO_WARNINGS /D _WINSOCK_DEPRECATED_NO_WARNINGS'
   $cxxflags = ''
   $linkopts = ''
-  $out = 'bin\\catnet_tui_scanner.exe'
+  $out = 'bin\\catnet_gui_scanner.exe'
   $libs = 'Ws2_32.lib Iphlpapi.lib'
-
-  if ($UseGacUI) {
-    Write-Host "GacUI enabled"
-    # Preferir parâmetros; se não fornecidos, usar variáveis de ambiente
-    $incPath = $GacUIInclude
-    $libPath = $GacUILibs
-    if (-not $incPath) { $incPath = $env:GACUI_INCLUDE }
-    if (-not $libPath) { $libPath = $env:GACUI_LIBS }
-    if (-not $incPath -or -not $libPath) {
-      Write-Error "Provide -GacUIInclude and -GacUILibs, or set GACUI_INCLUDE/GACUI_LIBS."
-    }
-    # Troca o arquivo de entrada principal para C++ GacUI
-    $files = $files | Where-Object { $_ -notmatch "\\src\\main.c$" }
-    $files += Join-Path $PWD "src/main_gacui.cpp"
-    $includes += " /I `"$incPath`""
-    $libs += " `"$libPath\\GacUI.lib`" Comctl32.lib UxTheme.lib User32.lib Gdi32.lib Comdlg32.lib Ole32.lib Dwmapi.lib Shlwapi.lib Shell32.lib Kernel32.lib Advapi32.lib"
-    $vlpp = Join-Path $libPath 'Vlpp.lib'
-    if (Test-Path $vlpp) {
-      $libs += " `"$vlpp`""
-    } else {
-      Write-Host "Warning: Vlpp.lib not found in '$libPath'. Proceeding with GacUI.lib only." -ForegroundColor Yellow
-    }
-    $cxxflags = '/std:c++20 /EHsc /Zc:__cplusplus /permissive- /utf-8 /MD'
-    $out = 'bin\\catnet_gui_scanner.exe'
-    $linkopts = '/link /SUBSYSTEM:WINDOWS'
-
-    # Integração opcional com GacGen.exe para gerar código de recursos
-    if ($GacGenPath -and (Test-Path $GacGenPath) -and (Test-Path $GacResource)) {
-      $genOutDir = Join-Path $PWD 'src/generated'
-      New-Item -ItemType Directory -Force -Path $genOutDir | Out-Null
-      Write-Host "Generating resource code with GacGen..."
-      $genCmd = "`"$GacGenPath`" -res `"$GacResource`" -name AppRes -cpp `"$genOutDir`""
-      Write-Host $genCmd
-      & cmd /c $genCmd
-      $genFiles = @(Get-ChildItem -Recurse -Path $genOutDir -Filter *.cpp | ForEach-Object { $_.FullName })
-      if ($genFiles.Count -gt 0) {
-        $files += $genFiles
-      }
+  # Configurar GacUI (sempre ativo)
+  $incPath = $GacUIInclude
+  $libPath = $GacUILibs
+  if (-not $incPath) { $incPath = $env:GACUI_INCLUDE }
+  if (-not $libPath) { $libPath = $env:GACUI_LIBS }
+  if (-not $incPath -or -not $libPath) {
+    $thirdParty = Join-Path $PWD 'third_party\GacUI'
+    $tpImport = Join-Path $thirdParty 'Import'
+    $tpLibRel = Join-Path $thirdParty 'Lib\Release'
+    if ((Test-Path $tpImport) -and (Test-Path $tpLibRel)) {
+      $incPath = $tpImport
+      $libPath = $tpLibRel
+      Write-Host "Detected GacUI in third_party: $thirdParty"
     }
   }
+  if (-not $incPath -or -not $libPath) {
+    Write-Error "Provide -GacUIInclude and -GacUILibs, or set GACUI_INCLUDE/GACUI_LIBS."
+  }
+  # Arquivos-fonte: C modules + main_gacui.cpp
+  $files = $files | Where-Object { $_ -notmatch "\\src\\main.c$" }
+  $files += Join-Path $PWD "src/main_gacui.cpp"
+  $includes += " /I `"$incPath`""
+  $libs += " `"$libPath\\GacUI.lib`" Comctl32.lib UxTheme.lib User32.lib Gdi32.lib Comdlg32.lib Ole32.lib Dwmapi.lib Shlwapi.lib Shell32.lib Kernel32.lib Advapi32.lib"
+  $vlpp = Join-Path $libPath 'Vlpp.lib'
+  if (Test-Path $vlpp) { $libs += " `"$vlpp`"" } else { Write-Host "Warning: Vlpp.lib not found in '$libPath'. Proceeding with GacUI.lib only." -ForegroundColor Yellow }
+  $cxxflags = '/std:c++20 /EHsc /Zc:__cplusplus /permissive- /utf-8 /MD'
+  $linkopts = '/link /SUBSYSTEM:WINDOWS'
 
   $clExists = (Get-Command cl -ErrorAction SilentlyContinue) -ne $null
   $clCmd = "cl /nologo /W3 /O2 $defines $cxxflags /Fe$out $($files -join ' ') $includes $libs $linkopts"
@@ -147,17 +134,4 @@ if ($Compiler -eq 'MSVC') {
     & cmd /c $fullCmd
   }
 }
-elseif ($Compiler -eq 'MinGW') {
-  Write-Host "Building with MinGW (gcc)"
-  if (-not (Get-Command gcc -ErrorAction SilentlyContinue)) {
-    Write-Error "MinGW 'gcc' not found. Install MinGW and ensure 'gcc' is on PATH."
-  }
-  $files = @(Get-ChildItem -Recurse -Filter *.c | ForEach-Object { $_.FullName })
-  $out = 'bin\\catnet_tui_scanner.exe'
-  $libs = '-lws2_32 -liphlpapi'
-  $cmd = "gcc -O2 -Wall -D _CRT_SECURE_NO_WARNINGS -D _WINSOCK_DEPRECATED_NO_WARNINGS -o $out $($files -join ' ') $libs"
-  Write-Host $cmd
-  & cmd /c $cmd
-}
-
-Write-Host "Build finished. Executable at $out"
+Write-Host "Build finished (GUI). Executable at $out"
