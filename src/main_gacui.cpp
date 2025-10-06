@@ -189,7 +189,7 @@ public:
         device_list_init(&results);
         scan_config_init(&cfg);
 
-        this->SetText(L"Windows Network Scanner (GacUI)");
+        this->SetText(L"CatNet Scanner (GacUI)");
         this->GetBoundsComposition()->SetPreferredMinSize(Size(900, 600));
 
         // Layout

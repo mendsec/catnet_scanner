@@ -1,4 +1,4 @@
-# Windows Network TUI Scanner (C)
+# CatNet Scanner (C)
 
 Aplicação em C com interface TUI (console) para Windows, similar a ferramentas de diagnóstico de rede. Funcionalidades:
 
@@ -28,7 +28,7 @@ powershell -ExecutionPolicy Bypass -File build.ps1 -Compiler MSVC
 powershell -ExecutionPolicy Bypass -File build.ps1 -Compiler MinGW
 ```
 
-O executável será gerado em `bin\net_tui_scanner.exe`.
+O executável será gerado em `bin\catnet_tui_scanner.exe`.
 
 ### GacUI (GUI)
 
@@ -44,7 +44,7 @@ Para usar a interface gráfica com GacUI:
 powershell -ExecutionPolicy Bypass -File build.ps1 -Compiler MSVC -UseGacUI -GacUIInclude "C:\\Dev\\GacUI\\Import" -GacUILibs "C:\\Dev\\GacUI\\Lib\\Release"
 ```
 
-O executável será gerado em `bin\net_gui_scanner.exe`.
+O executável será gerado em `bin\catnet_gui_scanner.exe`.
 
 Observação: se encontrar erros para compilar ou linkar o GacUI na sua máquina, você pode utilizar o `GacGen.exe` para gerar código a partir de recursos (XAML) do GacUI. Ainda será necessário linkar com `GacUI.lib`/`Vlpp.lib`. Caso queira, posso integrar um fluxo de geração via `GacGen` no build.
 

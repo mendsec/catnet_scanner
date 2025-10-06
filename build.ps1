@@ -19,7 +19,7 @@ if ($Compiler -eq 'MSVC') {
   $defines = '/D _CRT_SECURE_NO_WARNINGS /D _WINSOCK_DEPRECATED_NO_WARNINGS'
   $cxxflags = ''
   $linkopts = ''
-  $out = 'bin\\net_tui_scanner.exe'
+  $out = 'bin\\catnet_tui_scanner.exe'
   $libs = 'Ws2_32.lib Iphlpapi.lib'
 
   if ($UseGacUI) {
@@ -44,7 +44,7 @@ if ($Compiler -eq 'MSVC') {
       Write-Host "Aviso: Vlpp.lib não encontrado em '$libPath'. Prosseguindo apenas com GacUI.lib." -ForegroundColor Yellow
     }
     $cxxflags = '/std:c++20 /EHsc /Zc:__cplusplus /permissive- /utf-8 /MD'
-    $out = 'bin\\net_gui_scanner.exe'
+    $out = 'bin\\catnet_gui_scanner.exe'
     $linkopts = '/link /SUBSYSTEM:WINDOWS'
 
     # Integração opcional com GacGen.exe para gerar código de recursos
