@@ -1,0 +1,11 @@
+# Build outputs
+bin/
+*.obj
+*.exe
+
+# Generated
+src/generated/
+
+# Logs and temp
+*.log
+*.tmp

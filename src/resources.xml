@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GuiResource>
+  <Folder name="res">
+    <String name="AppTitle">Windows Network Scanner (GacUI)</String>
+    <String name="MenuLocal">Local</String>
+    <String name="MenuFaixa">Faixa</String>
+    <String name="MenuPing">Ping</String>
+    <String name="MenuDNS">DNS</String>
+    <String name="MenuExportar">Exportar</String>
+  </Folder>
+</GuiResource>
