@@ -73,3 +73,21 @@ Resultados incluem IP, hostname (se disponível), MAC (se disponível), e portas
 - MAC via ARP (`SendARP`) funciona apenas em hosts da mesma sub-rede.
 - O escaneamento de portas usa conexões TCP não bloqueantes com timeout.
 - O ping usa ICMP (`IcmpSendEcho`).
+
+## Utilitários de Logs de Conversa
+
+Este projeto mantém histórico e snapshots de conversa locais em `docs\chat_logs` (ignorados pelo Git). Há tasks no `build.ps1` para facilitar o uso:
+
+- Salvar nota rápida da conversa (Markdown):
+  - `powershell -ExecutionPolicy Bypass -File build.ps1 -Task chat-note -Text "Minha nota"`
+  - Opcional: nome específico do log com `-LogName "projeto-x"`
+
+- Salvar snapshot diário (Markdown):
+  - `powershell -ExecutionPolicy Bypass -File build.ps1 -Task daily-snapshot`
+  - Opcional: `-LogName "projeto-x"` para agrupar por nome
+
+- Limpar a pasta de logs mantendo apenas Markdown, README e anexos comuns:
+  - `powershell -ExecutionPolicy Bypass -File build.ps1 -Task chat-clean`
+  - São preservados: `*.md`, `README.md` e anexos `png, jpg, jpeg, gif, svg, pdf, txt`
+
+Para mais detalhes, consulte `docs\chat_logs\README.md`.
