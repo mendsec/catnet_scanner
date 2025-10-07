@@ -1,13 +1,31 @@
-# CatNet Scanner (GUI, WIP)
+# CatNet Scanner (GUI)
 
 CatNet Scanner is a Windows network scanner with a graphical UI built using Raygui (raylib).
 
+## Highlights
+
+- Parallel scan engine for responsive UI and faster discovery.
+- CIDR support in `IP Range/CIDR` with an `Auto-range` helper.
+- Quick Tools: `Ping`, `DNS`, and `Ports` for a single IP.
+- Filtered results: only alive devices are listed by default.
+- LAN-only toggle to constrain scanning to the primary subnet.
+- Responsive columns and resizable window.
+- Status bar and debug log with clearer progress reporting.
+
 ## Features
 
-- Scan local subnet and custom IP ranges.
-- Identify devices: ping, reverse DNS, MAC via ARP.
+- Scan local subnet and custom IP ranges (CIDR notation supported).
+- Identify devices: ICMP ping, reverse DNS, MAC via ARP.
 - Check common TCP open ports (configurable list).
 - Export results to a text file.
+
+## Screenshot
+
+Screenshots are stored under `docs/screenshots/` and referenced here. Add a
+current UI screenshot at `docs/screenshots/ui-v0.2.png` and it will be linked
+below.
+
+![UI Screenshot](docs/screenshots/ui-v0.2.png)
 
 ## Build (Windows, Clang)
 
@@ -22,6 +40,7 @@ Produces `bin\catnet_scanner.exe`.
 Notes:
 - Uses `clang-cl` for compilation and `lld-link` (or `link.exe`) for linking.
 - If Visual Studio Build Tools are installed, the script can auto-activate the environment for Windows SDK headers/libs.
+- Requires network privileges to send ICMP (ping) and ARP on Windows.
 
 ### Run
 
@@ -29,11 +48,12 @@ Notes:
 bin\catnet_scanner.exe
 ```
 
-## Notes
+## Usage Notes
 
 - The GUI is created programmatically in `src\main_raygui.c`.
 - MAC via ARP works only on the same subnet; ping uses ICMP; ports are checked via non-blocking TCP.
-- WIP: UI and flow may change.
+- Results list currently shows alive devices; total found count appears in the status bar.
+- Use `LAN only` to restrict scans to your primary subnet.
 
 ## Third-Party and Acknowledgements
 
@@ -85,3 +105,7 @@ Practical benefits:
 How to use:
 - On GitHub, when opening an Issue or PR, the corresponding template appears automatically. Fill it in with concise, relevant information.
 - Maintainers use the provided structure to reproduce issues, validate fixes, and assess impact, improving the reliability of the development workflow.
+
+## Changelog
+
+See `docs/RELEASE_NOTES_v0.2.0.md` for the latest changes and upgrade notes.
