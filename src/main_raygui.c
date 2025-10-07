@@ -1,8 +1,7 @@
 // Main window built with Raygui and C
-// To build, configure environment variables (or build.ps1 parameters):
-//   RAYLIB_INCLUDE: path to raylib headers (containing raylib.h)
-//   RAYLIB_LIBS: path to raylib libraries (containing raylib.lib)
-// build.ps1 has been extended to support -UI Raygui and link raylib.
+// Build via the project script: `build.ps1 -Compiler Clang -UI Raygui` (default).
+// The script compiles raylib modules from `third_party/raylib/src` and integrates raygui,
+// activating Windows SDK headers/libs when available. No prebuilt raylib binaries required.
 
 #include "raylib.h"
 #include <stdbool.h>
@@ -16,6 +15,7 @@
 #include <string.h>
 
 static Color g_bgColor = {24,24,24,255};
+static bool favoritesExpanded = false;
 static void apply_theme(bool dark)
 {
     Color bg = dark ? (Color){24,24,24,255} : RAYWHITE;

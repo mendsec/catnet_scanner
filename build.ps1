@@ -70,7 +70,8 @@ if ($Task -ne 'build') { return }
 
 if ($Compiler -eq 'MSVC' -or $Compiler -eq 'Clang') {
   $isClang = ($Compiler -eq 'Clang')
-  Write-Host ("Building with {0} [Raygui only]" -f ($isClang ? 'Clang (clang-cl/lld-link)' : 'MSVC (cl)'))
+  $compilerName = if ($isClang) { 'Clang (clang-cl/lld-link)' } else { 'MSVC (cl)' }
+  Write-Host ("Building with {0} [Raygui only]" -f $compilerName)
   # Project sources only (src/); third-party will be added as needed
   $files = @(Get-ChildItem -Path (Join-Path $PWD 'src') -Recurse -Filter *.c | ForEach-Object { $_.FullName })
   $includes = ''
@@ -133,9 +134,17 @@ if ($Compiler -eq 'MSVC' -or $Compiler -eq 'Clang') {
       Write-Host "Using local build of raylib modules (PLATFORM_DESKTOP_RGFW) and raygui.h"
   }
 
-  $cc = $isClang ? 'clang-cl' : 'cl'
-  $linker = $isClang ? ((Get-Command lld-link -ErrorAction SilentlyContinue) ? 'lld-link' : 'link') : 'link'
+  $cc = if ($isClang) { 'clang-cl' } else { 'cl' }
+  if ($isClang) {
+    if ((Get-Command lld-link -ErrorAction SilentlyContinue) -ne $null) { $linker = 'lld-link' } else { $linker = 'link' }
+  } else { $linker = 'link' }
   $ccExists = (Get-Command $cc -ErrorAction SilentlyContinue) -ne $null
+  if ($isClang -and -not $ccExists) {
+    Write-Warning "clang-cl not found; falling back to MSVC 'cl'"
+    $isClang = $false
+    $cc = 'cl'
+    $linker = 'link'
+  }
   $ccCmd = "$cc /nologo /W3 /O2 $defines $cxxflags /Fe`"$out`" $($files -join ' ') $includes $linkopts $libs"
 
   if ($ccExists) {
@@ -208,7 +217,11 @@ if ($Compiler -eq 'MSVC' -or $Compiler -eq 'Clang') {
       foreach ($f in $files) { $objLeafs += (Split-Path $f -Leaf) -replace '\.c$', '.obj' }
       $linkOptsForLink = ($linkopts -replace '^\s*/link\s+', '')
       $objArgs = ($objLeafs -join ' ')
-      $linkerVs = $isClang -and ((Get-Command lld-link -ErrorAction SilentlyContinue) -ne $null) ? 'lld-link' : 'link'
+      if ($isClang -and ((Get-Command lld-link -ErrorAction SilentlyContinue) -ne $null)) {
+        $linkerVs = 'lld-link'
+      } else {
+        $linkerVs = 'link'
+      }
       $linkCmdVs = '"' + $vsDevCmd + '" -arch=amd64 -host_arch=amd64 && ' + $linkerVs + ' /OUT:"' + $out + '" ' + $objArgs + ' ' + $libs + ' ' + $linkOptsForLink
       Write-Host $linkCmdVs
       & cmd /c $linkCmdVs
