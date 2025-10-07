@@ -80,7 +80,7 @@ int main(void)
     DeviceList results; device_list_init(&results);
     ScanConfig cfg; scan_config_init(&cfg);
     bool isScanning = false;
-    bool darkTheme = true; apply_theme(darkTheme);
+    apply_theme(true);
     int selectedIndex = -1;
     Vector2 scroll = (Vector2){0,0};
     scan_set_logger(gui_logger);
@@ -116,9 +116,7 @@ int main(void)
             }
         }
         if (GuiButton((Rectangle){ 100, 10, 80, 25 }, "Stop")) { /* future: cancel scan */ }
-        bool prevTheme = darkTheme;
-        GuiCheckBox((Rectangle){ 190, 10, 20, 20 }, "Dark", &darkTheme);
-        if (darkTheme != prevTheme) { apply_theme(darkTheme); }
+        // Dark theme enforced by default; toggle removed.
         GuiLabel((Rectangle){ screenWidth - 320, 10, 60, 25 }, "IP Range:");
         // TextBox storage variable
         static char ipRangeText[64] = "192.168.1.1-254";
