@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
+#include <winsock2.h>
 
 int ip_to_uint(const char* ip, unsigned long* out) {
     unsigned long a = inet_addr(ip);

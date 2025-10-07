@@ -23,8 +23,10 @@ extern "C" {
 #endif
 void scan_config_init(ScanConfig* cfg);
 
-void scan_subnet(DeviceList* out, const ScanConfig* cfg);
-void scan_range(DeviceList* out, const ScanConfig* cfg, const char* start_ip, const char* end_ip);
+// Returns 1 on success, 0 on failure
+int scan_subnet(DeviceList* out, const ScanConfig* cfg);
+// Returns 1 on success, 0 on failure
+int scan_range(DeviceList* out, const ScanConfig* cfg, const char* start_ip, const char* end_ip);
 void identify_device(DeviceInfo* info, const ScanConfig* cfg);
 #ifdef __cplusplus
 }

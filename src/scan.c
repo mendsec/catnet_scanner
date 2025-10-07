@@ -23,40 +23,54 @@ void identify_device(DeviceInfo* info, const ScanConfig* cfg) {
         if (g_logger) { char msg[160]; snprintf(msg, sizeof(msg), "MAC %s...", info->ip); g_logger(msg); }
         net_get_mac(info->ip, info->mac, sizeof(info->mac));
         info->open_ports_count = 0;
-        if (g_logger) { char msg[160]; snprintf(msg, sizeof(msg), "Portas %s...", info->ip); g_logger(msg); }
+        if (g_logger) { char msg[160]; snprintf(msg, sizeof(msg), "Ports %s...", info->ip); g_logger(msg); }
         net_scan_ports(info->ip, cfg->default_ports, cfg->default_ports_count, cfg->port_timeout_ms, info->open_ports, &info->open_ports_count);
         if (g_logger) {
             char msg[256];
-            snprintf(msg, sizeof(msg), "Concluído %s: %s, %s, %d portas", info->ip, (info->hostname[0]?info->hostname:"(sem nome)"), (info->mac[0]?info->mac:"MAC --"), info->open_ports_count);
+            snprintf(msg, sizeof(msg), "Completed %s: %s, %s, %d ports", info->ip, (info->hostname[0]?info->hostname:"(unnamed)"), (info->mac[0]?info->mac:"MAC --"), info->open_ports_count);
             g_logger(msg);
         }
     } else {
-        if (g_logger) { char msg[128]; snprintf(msg, sizeof(msg), "Ping falhou %s", info->ip); g_logger(msg); }
+        if (g_logger) { char msg[128]; snprintf(msg, sizeof(msg), "Ping failed %s", info->ip); g_logger(msg); }
     }
 }
 
-void scan_subnet(DeviceList* out, const ScanConfig* cfg) {
+int scan_subnet(DeviceList* out, const ScanConfig* cfg) {
     SubnetV4 sn;
-    if (!net_get_primary_subnet(&sn)) return;
+    if (!net_get_primary_subnet(&sn)) {
+        if (g_logger) g_logger("Error: Failed to get primary subnet.");
+        return 0;
+    }
     for (unsigned long ip = sn.start_ip; ip <= sn.end_ip; ++ip) {
         DeviceInfo di; memset(&di, 0, sizeof(di));
         uint_to_ip(ip, di.ip, sizeof(di.ip));
-        if (g_logger) { char msg[128]; snprintf(msg, sizeof(msg), "Processando %s", di.ip); g_logger(msg); }
+        if (g_logger) { char msg[128]; snprintf(msg, sizeof(msg), "Processing %s", di.ip); g_logger(msg); }
         identify_device(&di, cfg);
         device_list_push(out, &di);
     }
+    return 1;
 }
 
-void scan_range(DeviceList* out, const ScanConfig* cfg, const char* start_ip, const char* end_ip) {
+int scan_range(DeviceList* out, const ScanConfig* cfg, const char* start_ip, const char* end_ip) {
     unsigned long start, end;
-    if (!ip_to_uint(start_ip, &start)) return;
-    if (!ip_to_uint(end_ip, &end)) return;
-    if (end < start) return;
+    if (!ip_to_uint(start_ip, &start)) {
+        if (g_logger) { char msg[128]; snprintf(msg, sizeof(msg), "Error: Invalid start IP '%s'", start_ip); g_logger(msg); }
+        return 0;
+    }
+    if (!ip_to_uint(end_ip, &end)) {
+        if (g_logger) { char msg[128]; snprintf(msg, sizeof(msg), "Error: Invalid end IP '%s'", end_ip); g_logger(msg); }
+        return 0;
+    }
+    if (end < start) {
+        if (g_logger) g_logger("Error: End IP is smaller than start IP.");
+        return 0;
+    }
     for (unsigned long ip = start; ip <= end; ++ip) {
         DeviceInfo di; memset(&di, 0, sizeof(di));
         uint_to_ip(ip, di.ip, sizeof(di.ip));
-        if (g_logger) { char msg[128]; snprintf(msg, sizeof(msg), "Processando %s", di.ip); g_logger(msg); }
+        if (g_logger) { char msg[128]; snprintf(msg, sizeof(msg), "Processing %s", di.ip); g_logger(msg); }
         identify_device(&di, cfg);
         device_list_push(out, &di);
     }
+    return 1;
 }

@@ -1,12 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#include <winsock2.h>
-#include <windows.h>
+// Keep this header free of Windows SDK includes to avoid symbol conflicts
+// (e.g., CloseWindow from windows.h vs raylib CloseWindow).
 
 #ifdef __cplusplus
 extern "C" {

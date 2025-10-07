@@ -2,13 +2,8 @@
 #define NET_H
 
 #include "app.h"
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-#include <winsock2.h>
-#include <windows.h>
-#include <iphlpapi.h>
-#include <icmpapi.h>
+// Avoid including Windows SDK headers here; keep this header lightweight
+// to prevent symbol conflicts in UI translation units.
 
 
 typedef struct {
