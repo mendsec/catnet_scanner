@@ -1,6 +1,6 @@
 Param(
-  [ValidateSet('MSVC')]
-  [string]$Compiler = 'MSVC',
+  [ValidateSet('MSVC','Clang')]
+  [string]$Compiler = 'Clang',
   [ValidateSet('Raygui')]
   [string]$UI = 'Raygui',
   [string]$RaylibInclude,
@@ -68,8 +68,9 @@ foreach ($o in $staleObjs) { try { Remove-Item -LiteralPath $o.FullName -Force -
 
 if ($Task -ne 'build') { return }
 
-if ($Compiler -eq 'MSVC') {
-  Write-Host "Building with MSVC (cl) [Raygui only]"
+if ($Compiler -eq 'MSVC' -or $Compiler -eq 'Clang') {
+  $isClang = ($Compiler -eq 'Clang')
+  Write-Host ("Building with {0} [Raygui only]" -f ($isClang ? 'Clang (clang-cl/lld-link)' : 'MSVC (cl)'))
   # Project sources only (src/); third-party will be added as needed
   $files = @(Get-ChildItem -Path (Join-Path $PWD 'src') -Recurse -Filter *.c | ForEach-Object { $_.FullName })
   $includes = ''
@@ -132,10 +133,12 @@ if ($Compiler -eq 'MSVC') {
       Write-Host "Using local build of raylib modules (PLATFORM_DESKTOP_RGFW) and raygui.h"
   }
 
-  $clExists = (Get-Command cl -ErrorAction SilentlyContinue) -ne $null
-  $clCmd = "cl /nologo /W3 /O2 $defines $cxxflags /Fe`"$out`" $($files -join ' ') $includes $linkopts $libs"
+  $cc = $isClang ? 'clang-cl' : 'cl'
+  $linker = $isClang ? ((Get-Command lld-link -ErrorAction SilentlyContinue) ? 'lld-link' : 'link') : 'link'
+  $ccExists = (Get-Command $cc -ErrorAction SilentlyContinue) -ne $null
+  $ccCmd = "$cc /nologo /W3 /O2 $defines $cxxflags /Fe`"$out`" $($files -join ' ') $includes $linkopts $libs"
 
-  if ($clExists) {
+  if ($ccExists) {
     Write-Host "Files:"; Write-Host ($files -join ', ')
     Write-Host "Includes: $includes"
     Write-Host "Libs: $libs"
@@ -150,7 +153,7 @@ if ($Compiler -eq 'MSVC') {
         elseif ($f -like "*\\third_party\\raygui\\src\\*") { $sub = 'rg' }
         $objName = "$sub" + '_' + ($leaf -replace '\.c$', '.obj')
         $objPath = Join-Path $objRoot $objName
-        $compileCmd = "cl /nologo /W3 /O2 $defines $cxxflags $includes /c `"$f`" /Fo`"$objPath`""
+        $compileCmd = "$cc /nologo /W3 /O2 $defines $cxxflags $includes /c `"$f`" /Fo`"$objPath`""
         Write-Host $compileCmd
         Invoke-Expression $compileCmd
         if ($LASTEXITCODE -ne 0) { Write-Error "Compilation failed for $f with exit code $LASTEXITCODE" }
@@ -158,7 +161,11 @@ if ($Compiler -eq 'MSVC') {
       }
       # Fase 2: linkar objetos
       $linkOptsForLink = ($linkopts -replace '^\s*/link\s+', '')
-      $linkCmd = "link /nologo /OUT:`"$out`" $($objs -join ' ') $libs $linkOptsForLink"
+      if ($linker -eq 'lld-link') {
+        $linkCmd = "lld-link /OUT:`"$out`" $($objs -join ' ') $libs $linkOptsForLink"
+      } else {
+        $linkCmd = "link /nologo /OUT:`"$out`" $($objs -join ' ') $libs $linkOptsForLink"
+      }
       Write-Host $linkCmd
       Write-Host $linkCmd
       Invoke-Expression $linkCmd
@@ -170,14 +177,14 @@ if ($Compiler -eq 'MSVC') {
       }
     }
     else {
-      Write-Host $clCmd
-      Invoke-Expression $clCmd
+      Write-Host $ccCmd
+      Invoke-Expression $ccCmd
     }
   } else {
-    # Tentar localizar VsDevCmd via vswhere
+    # Tentar localizar VsDevCmd via vswhere (necessário para cabeçalhos/SDK e libs no Windows)
     $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio/Installer/vswhere.exe"
     if (-not (Test-Path $vswhere)) {
-      Write-Error "MSVC 'cl' not found and 'vswhere.exe' is missing. Open the 'Developer Command Prompt for VS' and run this script."
+      Write-Error "Compiler '$cc' not found and 'vswhere.exe' is missing. Open the 'Developer Command Prompt for VS' and run this script."
     }
     $installPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Workload.VCTools -property installationPath
     if (-not $installPath) {
@@ -187,7 +194,7 @@ if ($Compiler -eq 'MSVC') {
     if (-not (Test-Path $vsDevCmd)) {
       Write-Error "VsDevCmd.bat not found at '$vsDevCmd'. Check your Build Tools installation."
     }
-    $fullCmd = "`"$vsDevCmd`" -arch=amd64 -host_arch=amd64 && $clCmd"
+    $fullCmd = "`"$vsDevCmd`" -arch=amd64 -host_arch=amd64 && $ccCmd"
     Write-Host "Files:"; Write-Host ($files -join ', ')
     Write-Host "Includes: $includes"
     Write-Host "Libs: $libs"
@@ -201,7 +208,8 @@ if ($Compiler -eq 'MSVC') {
       foreach ($f in $files) { $objLeafs += (Split-Path $f -Leaf) -replace '\.c$', '.obj' }
       $linkOptsForLink = ($linkopts -replace '^\s*/link\s+', '')
       $objArgs = ($objLeafs -join ' ')
-      $linkCmdVs = '"' + $vsDevCmd + '" -arch=amd64 -host_arch=amd64 && link /nologo /OUT:"' + $out + '" ' + $objArgs + ' ' + $libs + ' ' + $linkOptsForLink
+      $linkerVs = $isClang -and ((Get-Command lld-link -ErrorAction SilentlyContinue) -ne $null) ? 'lld-link' : 'link'
+      $linkCmdVs = '"' + $vsDevCmd + '" -arch=amd64 -host_arch=amd64 && ' + $linkerVs + ' /OUT:"' + $out + '" ' + $objArgs + ' ' + $libs + ' ' + $linkOptsForLink
       Write-Host $linkCmdVs
       & cmd /c $linkCmdVs
       if (Test-Path -LiteralPath $out) { Write-Host "Executable created (fallback): $out" }

@@ -1,5 +1,16 @@
 # Functions and Modules Manual (GUI, WIP)
 
+## Index
+- Types and Structures
+- Utilities
+- Networking
+- Scanning
+- GUI
+- Export
+- Entry Point
+- Considerations and Limitations
+- Future Extensions
+
 This manual describes the network diagnostic modules and the current GUI structure using Raygui (raylib). The console/TUI mode has been removed.
 
 ## Types and Structures (src/app.h)

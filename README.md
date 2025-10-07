@@ -9,15 +9,19 @@ CatNet Scanner is a Windows network scanner with a graphical UI built using Rayg
 - Check common TCP open ports (configurable list).
 - Export results to a text file.
 
-## Build (Windows, MSVC)
+## Build (Windows, Clang)
 
 ### Compile
 
 ```
-powershell -ExecutionPolicy Bypass -File build.ps1 -Compiler MSVC
+powershell -ExecutionPolicy Bypass -File build.ps1 -Compiler Clang
 ```
 
 Produces `bin\catnet_scanner.exe`.
+
+Notes:
+- Uses `clang-cl` for compilation and `lld-link` (or `link.exe`) for linking.
+- If Visual Studio Build Tools are installed, the script can auto-activate the environment for Windows SDK headers/libs.
 
 ### Run
 
