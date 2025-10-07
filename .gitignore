@@ -34,5 +34,3 @@ src/generated/
 sync_gh.ps1
 # Local AI chat logs (do not track backups)
 /docs/chat_logs/
-# Local AI chat logs
-/docs/chat_logs/
