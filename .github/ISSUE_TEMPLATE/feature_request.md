@@ -1,23 +1,23 @@
 ---
 name: Feature request
-about: Sugerir melhoria ou nova funcionalidade
-title: "[Feature] Descrição breve"
+about: Suggest an improvement or new functionality
+title: "[Feature] Short description"
 labels: enhancement
 assignees: ""
 ---
 
-## Resumo
-Explique a melhoria proposta.
+## Summary
+Explain the proposed improvement.
 
-## Motivação
-Por que essa funcionalidade é importante?
+## Motivation
+Why is this functionality important?
 
-## Alternativas consideradas
-Liste abordagens alternativas e por que foram descartadas.
+## Alternatives considered
+List alternative approaches and why they were discarded.
 
-## Critérios de aceitação
+## Acceptance criteria
 - 
 - 
 
-## Impactos
-Áreas afetadas, riscos e migrações necessárias.
+## Impacts
+Affected areas, risks, and required migrations.

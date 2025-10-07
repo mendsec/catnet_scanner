@@ -1,26 +1,26 @@
 ---
 name: Bug report
-about: Reportar um problema
-title: "[Bug] Descrição breve"
+about: Report a problem
+title: "[Bug] Short description"
 labels: bug
 assignees: ""
 ---
 
-## Descrição
-Explique o problema observado.
+## Description
+Explain the observed problem.
 
-## Passos para reproduzir
+## Steps to reproduce
 1. 
 2. 
 3. 
 
-## Comportamento esperado
-Descreva o resultado esperado.
+## Expected behavior
+Describe the expected result.
 
-## Evidências
-Logs, prints de tela ou anexos relevantes.
+## Evidence
+Logs, screenshots or relevant attachments.
 
-## Ambiente
-- Versão do executável/sistema
-- SO/Versão
-- Outras informações relevantes
+## Environment
+- Executable/system version
+- OS/version
+- Other relevant information

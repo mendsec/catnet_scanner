@@ -64,3 +64,20 @@ git add third_party/raylib third_party/raygui
 git commit -m "Update submodules"
 git push
 ```
+
+## .github (purpose and practical use)
+
+The `.github` folder contains templates that streamline collaboration on GitHub:
+
+- Issue templates: provide structured forms for reporting bugs and requesting features, ensuring key details (steps to reproduce, expected behavior, environment, motivation) are captured consistently.
+- Pull Request template: guides contributors to describe changes, affected components, and validation steps, and to update docs or scripts when needed. This reduces review friction and improves traceability.
+- Issue config: disables blank issues and points users to the documentation for build and usage information, helping keep reports actionable.
+
+Practical benefits:
+- Faster triage and clearer communication between maintainers and contributors.
+- More consistent and complete reports, leading to fewer back-and-forths.
+- Better documentation hygiene by reminding contributors to update docs alongside code changes.
+
+How to use:
+- On GitHub, when opening an Issue or PR, the corresponding template appears automatically. Fill it in with concise, relevant information.
+- Maintainers use the provided structure to reproduce issues, validate fixes, and assess impact, improving the reliability of the development workflow.

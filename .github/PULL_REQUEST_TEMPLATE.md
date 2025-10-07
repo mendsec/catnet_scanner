@@ -1,24 +1,23 @@
-## Resumo
+## Summary
 
-Descreva brevemente o que este PR faz e o contexto.
+Briefly describe what this PR does and the context.
 
-## Mudanças
+## Changes
 
-- Principais alterações realizadas
-- Componentes/arquivos impactados
+- Key changes
+- Components/files impacted
 
-## Testes
+## Tests
 
-- Como validar as mudanças (passos, comandos, cenários)
-- Resultados esperados
+- How to validate the changes (steps, commands, scenarios)
+- Expected results
 
 ## Checklist
 
-- [ ] Código compila e passa nos checks locais (`build.ps1 -Task build`)
-- [ ] Documentação atualizada (se aplicável)
-- [ ] Scripts de utilidade/Build atualizados (se aplicável)
-- [ ] Sem remoção indevida de logs de conversa (ver `docs/chat_logs/README.md`)
+- [ ] Build passes locally (`powershell -ExecutionPolicy Bypass -File build.ps1`)
+- [ ] Documentation updated (if applicable)
+- [ ] Utility/Build scripts updated (if applicable)
 
-## Observações
+## Notes
 
-Notas adicionais, limitações ou follow-ups.
+Additional notes, limitations, or follow-ups.
