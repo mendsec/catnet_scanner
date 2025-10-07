@@ -1,10 +1,10 @@
 Param(
   [ValidateSet('MSVC')]
   [string]$Compiler = 'MSVC',
-  [string]$GacUIInclude,
-  [string]$GacUILibs,
-  [string]$GacGenPath,
-  [string]$GacResource = 'src\\resources.xml',
+  [ValidateSet('Raygui')]
+  [string]$UI = 'Raygui',
+  [string]$RaylibInclude,
+  [string]$RaylibLibs,
   [ValidateSet('build','chat-note','daily-snapshot','chat-clean')]
   [string]$Task = 'build',
   [string]$Text,
@@ -62,55 +62,117 @@ elseif ($Task -eq 'chat-clean') {
 
 New-Item -ItemType Directory -Force -Path "bin" | Out-Null
 
+# Pre-build cleanup: remove stale object files in project root
+$staleObjs = Get-ChildItem -Path $PWD.Path -Filter *.obj -File -ErrorAction SilentlyContinue
+foreach ($o in $staleObjs) { try { Remove-Item -LiteralPath $o.FullName -Force -ErrorAction Stop } catch {} }
+
 if ($Task -ne 'build') { return }
 
 if ($Compiler -eq 'MSVC') {
-  Write-Host "Building with MSVC (cl)"
-  # Compilação apenas da GUI (GacUI)
-  $files = @(Get-ChildItem -Recurse -Filter *.c | ForEach-Object { $_.FullName })
+  Write-Host "Building with MSVC (cl) [Raygui only]"
+  # Project sources only (src/); third-party will be added as needed
+  $files = @(Get-ChildItem -Path (Join-Path $PWD 'src') -Recurse -Filter *.c | ForEach-Object { $_.FullName })
   $includes = ''
   $defines = '/D _CRT_SECURE_NO_WARNINGS /D _WINSOCK_DEPRECATED_NO_WARNINGS'
   $cxxflags = ''
   $linkopts = ''
-  $out = 'bin\\catnet_gui_scanner.exe'
-  $libs = 'Ws2_32.lib Iphlpapi.lib'
-  # Configurar GacUI (sempre ativo)
-  $incPath = $GacUIInclude
-  $libPath = $GacUILibs
-  if (-not $incPath) { $incPath = $env:GACUI_INCLUDE }
-  if (-not $libPath) { $libPath = $env:GACUI_LIBS }
-  if (-not $incPath -or -not $libPath) {
-    $thirdParty = Join-Path $PWD 'third_party\GacUI'
-    $tpImport = Join-Path $thirdParty 'Import'
-    $tpLibRel = Join-Path $thirdParty 'Lib\Release'
-    if ((Test-Path $tpImport) -and (Test-Path $tpLibRel)) {
-      $incPath = $tpImport
-      $libPath = $tpLibRel
-      Write-Host "Detected GacUI in third_party: $thirdParty"
-    }
+  $out = ''
+  $libs = ''
+
+  if ($UI -eq 'Raygui') {
+    # GUI build (Raylib + Raygui)
+    $out = (Join-Path $PWD.Path 'bin\catnet_scanner.exe')
+    $libs = 'Ws2_32.lib Iphlpapi.lib user32.lib gdi32.lib shell32.lib kernel32.lib winmm.lib opengl32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib shcore.lib'
+    # Configure Raylib
+    $rlInc = $RaylibInclude; if (-not $rlInc) { $rlInc = $env:RAYLIB_INCLUDE }
+    $rlLib = $RaylibLibs;    if (-not $rlLib) { $rlLib = $env:RAYLIB_LIBS }
+    # Source files: C modules + main_raygui.c
+    $files = $files | Where-Object { $_ -notmatch "\\src\\main.c$" }
+    $files = $files | Where-Object { $_ -notmatch "\\src\\main_gacui.cpp$" }
+    $files += Join-Path $PWD "src/main_raygui.c"
+    # Compile as C (MSVC does not use /std, use /TC)
+    $cxxflags = '/TC /utf-8 /MD'
+    $linkopts = '/link /SUBSYSTEM:CONSOLE'
+
+    # Force fallback: build raylib from source to ensure predictable binary
+    $useLocalRaylib = $true
+      $thirdParty = Join-Path $PWD 'third_party'
+      New-Item -ItemType Directory -Force -Path $thirdParty | Out-Null
+      $raylibDir = Join-Path $thirdParty 'raylib'
+      $rayguiDir = Join-Path $thirdParty 'raygui'
+
+      if (-not (Test-Path $raylibDir)) {
+        Write-Host "Cloning raylib into $raylibDir ..."
+        git clone https://github.com/raysan5/raylib.git $raylibDir | Out-Null
+      } else { Write-Host "raylib present: $raylibDir" }
+
+      if (-not (Test-Path $rayguiDir)) {
+        Write-Host "Cloning raygui into $rayguiDir ..."
+        git clone https://github.com/raysan5/raygui.git $rayguiDir | Out-Null
+      } else { Write-Host "raygui present: $rayguiDir" }
+
+      $rlSrc = Join-Path $raylibDir 'src'
+      $rgSrc = Join-Path $rayguiDir 'src'
+      # Current raylib (5.x) uses modular sources instead of monolithic raylib.c
+      # raylib.c may not exist; we compile modules directly
+      if (-not (Test-Path (Join-Path $rgSrc 'raygui.h'))) { Write-Error "raygui.h not found at $rgSrc" }
+
+      # Include raylib and raygui headers
+      $includes += " /I `"$rlSrc`" /I `"$rgSrc`""
+      # Build core modules directly (avoid precompiled raylib.lib)
+      $files += @(Join-Path $rlSrc 'rcore.c')
+      $files += @(Join-Path $rlSrc 'rshapes.c')
+      $files += @(Join-Path $rlSrc 'rtextures.c')
+      $files += @(Join-Path $rlSrc 'rtext.c')
+      $files += @(Join-Path $rlSrc 'rmodels.c')
+      $files += @(Join-Path $rlSrc 'raudio.c')
+      $files += @(Join-Path $rlSrc 'utils.c')
+      # Select desktop RGFW backend to avoid GLFW dependency
+      $defines += ' /D PLATFORM_DESKTOP_RGFW /D GRAPHICS_API_OPENGL_33'
+      Write-Host "Using local build of raylib modules (PLATFORM_DESKTOP_RGFW) and raygui.h"
   }
-  if (-not $incPath -or -not $libPath) {
-    Write-Error "Provide -GacUIInclude and -GacUILibs, or set GACUI_INCLUDE/GACUI_LIBS."
-  }
-  # Arquivos-fonte: C modules + main_gacui.cpp
-  $files = $files | Where-Object { $_ -notmatch "\\src\\main.c$" }
-  $files += Join-Path $PWD "src/main_gacui.cpp"
-  $includes += " /I `"$incPath`""
-  $libs += " `"$libPath\\GacUI.lib`" Comctl32.lib UxTheme.lib User32.lib Gdi32.lib Comdlg32.lib Ole32.lib Dwmapi.lib Shlwapi.lib Shell32.lib Kernel32.lib Advapi32.lib"
-  $vlpp = Join-Path $libPath 'Vlpp.lib'
-  if (Test-Path $vlpp) { $libs += " `"$vlpp`"" } else { Write-Host "Warning: Vlpp.lib not found in '$libPath'. Proceeding with GacUI.lib only." -ForegroundColor Yellow }
-  $cxxflags = '/std:c++20 /EHsc /Zc:__cplusplus /permissive- /utf-8 /MD'
-  $linkopts = '/link /SUBSYSTEM:WINDOWS'
 
   $clExists = (Get-Command cl -ErrorAction SilentlyContinue) -ne $null
-  $clCmd = "cl /nologo /W3 /O2 $defines $cxxflags /Fe$out $($files -join ' ') $includes $libs $linkopts"
+  $clCmd = "cl /nologo /W3 /O2 $defines $cxxflags /Fe`"$out`" $($files -join ' ') $includes $linkopts $libs"
 
   if ($clExists) {
     Write-Host "Files:"; Write-Host ($files -join ', ')
     Write-Host "Includes: $includes"
     Write-Host "Libs: $libs"
-    Write-Host $clCmd
-    Invoke-Expression $clCmd
+    if ($useLocalRaylib) {
+      # Fase 1: compilar objetos (evitar colisão de nomes usando /Fo por arquivo)
+      $objRoot = $PWD.Path
+      $objs = @()
+      foreach ($f in $files) {
+        $leaf = Split-Path $f -Leaf
+        $sub = 'prj'
+        if ($f -like "*\\third_party\\raylib\\src\\*") { $sub = 'rl' }
+        elseif ($f -like "*\\third_party\\raygui\\src\\*") { $sub = 'rg' }
+        $objName = "$sub" + '_' + ($leaf -replace '\.c$', '.obj')
+        $objPath = Join-Path $objRoot $objName
+        $compileCmd = "cl /nologo /W3 /O2 $defines $cxxflags $includes /c `"$f`" /Fo`"$objPath`""
+        Write-Host $compileCmd
+        Invoke-Expression $compileCmd
+        if ($LASTEXITCODE -ne 0) { Write-Error "Compilation failed for $f with exit code $LASTEXITCODE" }
+        $objs += $objPath
+      }
+      # Fase 2: linkar objetos
+      $linkOptsForLink = ($linkopts -replace '^\s*/link\s+', '')
+      $linkCmd = "link /nologo /OUT:`"$out`" $($objs -join ' ') $libs $linkOptsForLink"
+      Write-Host $linkCmd
+      Write-Host $linkCmd
+      Invoke-Expression $linkCmd
+      if ($LASTEXITCODE -ne 0) { Write-Error "Link failed with exit code $LASTEXITCODE" }
+      if (Test-Path -LiteralPath $out) {
+        Write-Host "Executable created: $out"
+      } else {
+        Write-Warning "Link stage reported success but executable not found at $out"
+      }
+    }
+    else {
+      Write-Host $clCmd
+      Invoke-Expression $clCmd
+    }
   } else {
     # Tentar localizar VsDevCmd via vswhere
     $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio/Installer/vswhere.exe"
@@ -132,6 +194,19 @@ if ($Compiler -eq 'MSVC') {
     Write-Host "Activating VS environment and building..."
     Write-Host $fullCmd
     & cmd /c $fullCmd
+    # Fallback: se o executável não existir, tentar link explícito dos .obj gerados
+    if (-not (Test-Path -LiteralPath $out)) {
+      Write-Warning "Executável não encontrado após build; tentando link manual."
+      $objLeafs = @()
+      foreach ($f in $files) { $objLeafs += (Split-Path $f -Leaf) -replace '\.c$', '.obj' }
+      $linkOptsForLink = ($linkopts -replace '^\s*/link\s+', '')
+      $objArgs = ($objLeafs -join ' ')
+      $linkCmdVs = '"' + $vsDevCmd + '" -arch=amd64 -host_arch=amd64 && link /nologo /OUT:"' + $out + '" ' + $objArgs + ' ' + $libs + ' ' + $linkOptsForLink
+      Write-Host $linkCmdVs
+      & cmd /c $linkCmdVs
+      if (Test-Path -LiteralPath $out) { Write-Host "Executable created (fallback): $out" }
+      else { Write-Error "Link fallback failed; executável ainda não encontrado: $out" }
+    }
   }
 }
 Write-Host "Build finished (GUI). Executable at $out"
