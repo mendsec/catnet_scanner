@@ -15,12 +15,14 @@
 #include "scan.h"
 #include <string.h>
 
+static Color g_bgColor = {24,24,24,255};
 static void apply_theme(bool dark)
 {
     Color bg = dark ? (Color){24,24,24,255} : RAYWHITE;
     Color text = dark ? (Color){235,235,235,255} : (Color){20,20,20,255};
     Color line = dark ? (Color){80,80,80,255} : (Color){180,180,180,255};
     Color base = dark ? (Color){60,60,60,255} : (Color){220,220,220,255};
+    g_bgColor = bg;
     GuiSetStyle(DEFAULT, BACKGROUND_COLOR, ColorToInt(bg));
     GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(text));
     GuiSetStyle(DEFAULT, TEXT_COLOR_FOCUSED, ColorToInt(text));
@@ -84,6 +86,8 @@ int main(void)
     int selectedIndex = -1;
     Vector2 scroll = (Vector2){0,0};
     scan_set_logger(gui_logger);
+    // Shared IP range buffer used by toolbar TextBox and scan action
+    static char ipRangeText[64] = "192.168.1.1-254";
 
     // --- Main loop ---
     while (!WindowShouldClose())
@@ -92,7 +96,7 @@ int main(void)
 
         // --- UI drawing (per frame) ---
         BeginDrawing();
-        ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+        ClearBackground(g_bgColor);
 
         // --- 1. Toolbar (manual layout)
         // Rectangles define position and size for each control
@@ -103,7 +107,6 @@ int main(void)
                 net_init();
                 device_list_clear(&results);
                 // Parse ipRangeText: supports "A.B.C.D-E" or "A.B.C.D-E.F.G.H"
-                static char ipRangeText[64] = "192.168.1.1-254";
                 char startIp[64] = {0}, endIp[64] = {0};
                 if (parse_range(ipRangeText, startIp, sizeof(startIp), endIp, sizeof(endIp))) {
                     scan_range(&results, &cfg, startIp, endIp);
@@ -116,11 +119,9 @@ int main(void)
             }
         }
         if (GuiButton((Rectangle){ 100, 10, 80, 25 }, "Stop")) { /* future: cancel scan */ }
-        // Dark theme enforced by default; toggle removed.
-        GuiLabel((Rectangle){ screenWidth - 320, 10, 60, 25 }, "IP Range:");
-        // TextBox storage variable
-        static char ipRangeText[64] = "192.168.1.1-254";
-        GuiTextBox((Rectangle){ screenWidth - 250, 10, 240, 25 }, ipRangeText, sizeof(ipRangeText), false);
+        // Dark theme enforced by default; toggle removed. Move IP range controls left.
+        GuiLabel((Rectangle){ 190, 10, 80, 25 }, "IP Range:");
+        GuiTextBox((Rectangle){ 275, 10, 350, 25 }, ipRangeText, sizeof(ipRangeText), false);
         
         // --- 2. Sidebar (TreeView simulation) ---
         GuiGroupBox((Rectangle){ 10, 45, 200, screenHeight - 95 }, "Navigation");
