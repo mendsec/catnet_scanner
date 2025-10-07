@@ -37,3 +37,30 @@ bin\catnet_scanner.exe
   - raylib: https://github.com/raysan5/raylib
   - raygui: https://github.com/raysan5/raygui
 - Huge thanks to the authors and contributors of raylib and raygui.
+
+## Submódulos (como clonar e atualizar)
+
+Para clonar o repositório já com os submódulos:
+
+```
+git clone --recursive https://github.com/mendsec/catnet_scanner.git
+```
+
+Se você já clonou sem `--recursive`, inicialize e atualize os submódulos:
+
+```
+git submodule update --init --recursive
+```
+
+Para manter os submódulos atualizados (avançar para as últimas mudanças nas upstreams) e registrar no repositório:
+
+```
+# Atualiza cada submódulo para o branch padrão
+git submodule foreach "git checkout master || git checkout main"
+git submodule foreach "git pull"
+
+# Registra os novos commits no repositório pai
+git add third_party/raylib third_party/raygui
+git commit -m "Update submodules"
+git push
+```
