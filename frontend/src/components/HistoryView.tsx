@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Database, Play, Trash2, Download } from 'lucide-react';
-import { GetScans, DeleteScan } from '../../wailsjs/go/main/App';
-import { store } from '../../wailsjs/go/models';
+import { GetScans, DeleteScan, GetScanReport, ExportResults } from '../../wailsjs/go/main/App';
+import { store, results } from '../../wailsjs/go/models';
 
 export function HistoryView({ onCompare }: { onCompare: (scanId: number) => void }) {
   const [scans, setScans] = useState<store.ScanSummary[]>([]);
@@ -31,6 +31,26 @@ export function HistoryView({ onCompare }: { onCompare: (scanId: number) => void
       fetchScans();
     } catch (e) {
       console.error("Failed to delete", e);
+    }
+  };
+
+  const handleExport = async (id: number) => {
+    try {
+      const report = await GetScanReport(id);
+      if (report && report.devices && report.devices.length > 0) {
+        const hostResults: results.HostResult[] = report.devices.map((d: results.DeviceInfo) =>
+          results.HostResult.createFrom({
+            ip: d.ip,
+            alive: d.isAlive,
+            hostname: d.hostname,
+            mac: d.mac,
+            open_ports: d.openPorts || []
+          })
+        );
+        await ExportResults(hostResults);
+      }
+    } catch (e) {
+      console.error("Failed to export scan", e);
     }
   };
 
@@ -66,10 +86,10 @@ export function HistoryView({ onCompare }: { onCompare: (scanId: number) => void
                 <td><span className="status-dot status-alive"></span> {scan.alive_hosts}</td>
                 <td>{scan.total_hosts}</td>
                 <td style={{ display: 'flex', gap: '8px' }}>
-                  <button className="icon-btn" aria-label={`Compare scan #${scan.id}`} title="Compare against last scan" onClick={() => onCompare(scan.id)}>
+                  <button className="icon-btn" aria-label={`Diff scan #${scan.id}`} title="Compare against last scan" onClick={() => onCompare(scan.id)}>
                     <Play size={16} /> Diff
                   </button>
-                  <button className="icon-btn" aria-label={`Export scan #${scan.id}`} title="Export JSON">
+                  <button className="icon-btn" aria-label={`Export scan #${scan.id}`} title="Export JSON" onClick={() => handleExport(scan.id)}>
                     <Download size={16} />
                   </button>
                   <button className="icon-btn" aria-label={`Delete scan #${scan.id}`} style={{ color: 'var(--status-dead)' }} title="Delete" onClick={() => handleDelete(scan.id)}>

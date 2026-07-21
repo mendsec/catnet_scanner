@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Confirmation dialog before deleting scan history in `HistoryView`.
+- Export JSON handler for historical scan reports in `HistoryView`.
+
+### Fixed
+- Fixed WCAG 2.5.3 (Label in Name) violation on scan diff button `aria-label`.
+
 ## [0.4.1] - 2026-06-01
 
 ### Security
