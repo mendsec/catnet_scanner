@@ -6,7 +6,7 @@ This file provides persistent context for AI coding agents working in the `catne
 
 ## What this repository is
 
-`catnet-io/app` is the cross-platform desktop GUI for CatNet.
+`catnet-io/app` is the cross-platform (desktop & mobile) GUI for CatNet.
 Built with Wails v2 (Go backend) + React/TypeScript (frontend).
 It is a pure consumer of `catnet-io/engine` — it contains zero scanning logic.
 

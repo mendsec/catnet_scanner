@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Confirmation dialog before deleting scan history in `HistoryView`.
 - Export JSON handler for historical scan reports in `HistoryView`.
 
+### Changed
+- Clarified cross-platform (Desktop & Mobile) scope in `AGENTS.md` and `README.md`.
+
 ### Fixed
 - Fixed WCAG 2.5.3 (Label in Name) violation on scan diff button `aria-label`.
 
