@@ -74,7 +74,7 @@ export function ScannerView() {
   };
 
   useEffect(() => {
-    handleAutoDetect();
+    void handleAutoDetect();
   }, []);
 
   const handleScan = async () => {
@@ -136,8 +136,14 @@ export function ScannerView() {
   const handleExport = async () => {
     if (devices.length === 0) return;
     try {
-      // Cast list to correct format for binding wrapper
-      const path = await ExportResults(devices as any);
+      const hostResults: results.HostResult[] = devices.map(d => results.HostResult.createFrom({
+        ip: d.ip,
+        alive: d.isAlive,
+        hostname: d.hostname,
+        mac: d.mac,
+        open_ports: d.openPorts || []
+      }));
+      const path = await ExportResults(hostResults);
       if (path) addLog(`Exported results to: ${path}`);
     } catch (e) {
       addLog(`Failed to export: ${e}`);
@@ -207,7 +213,7 @@ export function ScannerView() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  if (!isScanning && isValidIpRange(ipRange)) handleScan();
+                  if (!isScanning && isValidIpRange(ipRange)) void handleScan();
                 }
               }}
               disabled={isScanning}
@@ -216,17 +222,17 @@ export function ScannerView() {
               aria-invalid={!isValidIpRange(ipRange) && ipRange !== '' ? 'true' : 'false'}
               style={{ borderColor: !isValidIpRange(ipRange) && ipRange !== '' ? 'var(--status-dead)' : undefined }}
             />
-            <button className="icon-btn" onClick={() => { handleAutoDetect(); }} disabled={isScanning} title="Auto Detect Subnet" aria-label="Auto Detect Subnet">
+            <button className="icon-btn" onClick={() => { void handleAutoDetect(); }} disabled={isScanning} title="Auto Detect Subnet" aria-label="Auto Detect Subnet">
               <Search size={16} />
             </button>
           </div>
-          <button className="cyber-btn" onClick={() => { handleScan(); }} disabled={isScanning || !isValidIpRange(ipRange)}>
+          <button className="cyber-btn" onClick={() => { void handleScan(); }} disabled={isScanning || !isValidIpRange(ipRange)}>
             <Play size={18} /> {isScanning ? 'Scanning...' : 'Start'}
           </button>
           <button className="cyber-btn danger" onClick={handleStop} disabled={!isScanning}>
             <Square size={18} /> Stop
           </button>
-          <button className="cyber-btn" onClick={() => { handleExport(); }} disabled={isScanning || devices.length === 0} style={{ borderColor: 'var(--text-muted)', color: 'var(--text-muted)' }}>
+          <button className="cyber-btn" onClick={() => { void handleExport(); }} disabled={isScanning || devices.length === 0} style={{ borderColor: 'var(--text-muted)', color: 'var(--text-muted)' }}>
             <Download size={18} /> Export
           </button>
         </div>
@@ -333,13 +339,13 @@ export function ScannerView() {
               <div className="detail-section">
                 <span className="drawer-title" style={{ fontSize: '13px', marginBottom: '8px' }}>Quick Actions</span>
                 <div className="quick-tools-grid">
-                  <button className="cyber-btn tool-btn" onClick={() => { handlePing(selectedDevice.ip); }}>
+                  <button className="cyber-btn tool-btn" onClick={() => { void handlePing(selectedDevice.ip); }}>
                     Ping
                   </button>
-                  <button className="cyber-btn tool-btn" onClick={() => { handleReverseDNS(selectedDevice.ip); }}>
+                  <button className="cyber-btn tool-btn" onClick={() => { void handleReverseDNS(selectedDevice.ip); }}>
                     Reverse DNS
                   </button>
-                  <button className="cyber-btn tool-btn" onClick={() => { handleScanPorts(selectedDevice.ip); }} style={{ gridColumn: 'span 2' }}>
+                  <button className="cyber-btn tool-btn" onClick={() => { void handleScanPorts(selectedDevice.ip); }} style={{ gridColumn: 'span 2' }}>
                     Scan Common Ports
                   </button>
                 </div>

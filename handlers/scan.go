@@ -56,7 +56,12 @@ func (a *AppHandlers) StartScan(ips []string, cfg profile.ScanProfile) error {
 		done <- struct{}{}
 	}()
 
-	err := a.engine.ScanStream(context.Background(), ips, cfg, eventChan)
+	ctx := a.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	err := a.engine.ScanStream(ctx, ips, cfg, eventChan)
 	close(eventChan)
 	<-done // Wait for the event processing to finish
 

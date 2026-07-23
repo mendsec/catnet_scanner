@@ -29,6 +29,9 @@ func (a *AppHandlers) ExportResults(devices []results.HostResult) (string, error
 
 	// Sanitize and validate the path returned by the dialog
 	cleanPath := filepath.Clean(savePath)
+	if strings.Contains(savePath, "..") || strings.Contains(cleanPath, "..") {
+		return "", fmt.Errorf("invalid file path: directory traversal detected")
+	}
 	if cleanPath != savePath {
 		return "", fmt.Errorf("invalid file path")
 	}
@@ -41,7 +44,7 @@ func (a *AppHandlers) ExportResults(devices []results.HostResult) (string, error
 	var data []byte
 	var formatErr error
 
-	if strings.ToLower(filepath.Ext(savePath)) == ".json" {
+	if strings.ToLower(filepath.Ext(cleanPath)) == ".json" {
 		data, formatErr = export.ExportJSON(devices)
 	} else {
 		data, formatErr = export.ExportCSV(devices)
@@ -51,6 +54,6 @@ func (a *AppHandlers) ExportResults(devices []results.HostResult) (string, error
 		return "", formatErr
 	}
 
-	err = os.WriteFile(savePath, data, 0644)
-	return savePath, err
+	err = os.WriteFile(cleanPath, data, 0600)
+	return cleanPath, err
 }
