@@ -216,17 +216,17 @@ export function ScannerView() {
               aria-invalid={!isValidIpRange(ipRange) && ipRange !== '' ? 'true' : 'false'}
               style={{ borderColor: !isValidIpRange(ipRange) && ipRange !== '' ? 'var(--status-dead)' : undefined }}
             />
-            <button className="icon-btn" onClick={handleAutoDetect} disabled={isScanning} title="Auto Detect Subnet" aria-label="Auto Detect Subnet">
+            <button className="icon-btn" onClick={() => { handleAutoDetect(); }} disabled={isScanning} title="Auto Detect Subnet" aria-label="Auto Detect Subnet">
               <Search size={16} />
             </button>
           </div>
-          <button className="cyber-btn" onClick={handleScan} disabled={isScanning || !isValidIpRange(ipRange)}>
+          <button className="cyber-btn" onClick={() => { handleScan(); }} disabled={isScanning || !isValidIpRange(ipRange)}>
             <Play size={18} /> {isScanning ? 'Scanning...' : 'Start'}
           </button>
           <button className="cyber-btn danger" onClick={handleStop} disabled={!isScanning}>
             <Square size={18} /> Stop
           </button>
-          <button className="cyber-btn" onClick={handleExport} disabled={isScanning || devices.length === 0} style={{ borderColor: 'var(--text-muted)', color: 'var(--text-muted)' }}>
+          <button className="cyber-btn" onClick={() => { handleExport(); }} disabled={isScanning || devices.length === 0} style={{ borderColor: 'var(--text-muted)', color: 'var(--text-muted)' }}>
             <Download size={18} /> Export
           </button>
         </div>
@@ -333,13 +333,13 @@ export function ScannerView() {
               <div className="detail-section">
                 <span className="drawer-title" style={{ fontSize: '13px', marginBottom: '8px' }}>Quick Actions</span>
                 <div className="quick-tools-grid">
-                  <button className="cyber-btn tool-btn" onClick={() => handlePing(selectedDevice.ip)}>
+                  <button className="cyber-btn tool-btn" onClick={() => { handlePing(selectedDevice.ip); }}>
                     Ping
                   </button>
-                  <button className="cyber-btn tool-btn" onClick={() => handleReverseDNS(selectedDevice.ip)}>
+                  <button className="cyber-btn tool-btn" onClick={() => { handleReverseDNS(selectedDevice.ip); }}>
                     Reverse DNS
                   </button>
-                  <button className="cyber-btn tool-btn" onClick={() => handleScanPorts(selectedDevice.ip)} style={{ gridColumn: 'span 2' }}>
+                  <button className="cyber-btn tool-btn" onClick={() => { handleScanPorts(selectedDevice.ip); }} style={{ gridColumn: 'span 2' }}>
                     Scan Common Ports
                   </button>
                 </div>
