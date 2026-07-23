@@ -68,6 +68,7 @@ Do not introduce flat or material design components.
 6. **Do not add features to `pkg/store` or `pkg/diff` in `catnet-io/engine`.**
    These packages are migrating to `internal/store` and `internal/diff` in this repository.
 7. **`.archive-notice.md` belongs in `docs/`.** Do not put archive notices in the root.
+8. **NEVER replace `bun` with `npm`, `yarn`, or `pnpm`.** Always use `bun` (`bun install`, `bun run build`, `bun test`, `bun dev`) for all JS/TS package management and execution.
 8. **`CHANGES.md` is deprecated.** All changelog entries go to `CHANGELOG.md` only.
 
 ---
@@ -126,6 +127,7 @@ Update `CHANGELOG.md` under `[Unreleased]` for every behavioral change.
 - Harden `mendsec/catnet-scanner` with DevSecOps practices (SHA pinning, permissions, Semgrep SAST) and automate signed PRs from `develop` to `main` via SSH-signed commits on `develop-signed`.
 
 ### Constraints & Preferences
+- **Package Manager**: NEVER replace `bun` with `npm`, `yarn`, or `pnpm`. Always use `bun` (`bun install`, `bun run build`, `bun test`, `bun dev`) for all JS/TS package management and execution.
 - PR author must be `github-actions[bot]` (not `mendsec`) so the user can review and merge.
 - Commits on `develop-signed` must show **Verified** badge (SSH signing key added to GitHub account).
 - Follow the pattern from the `mendsec/catnet` repo (`auto-merge-pr.yml` + `BOT_SSH_PRIVATE_KEY`).
