@@ -10,51 +10,36 @@ on:
     branches: [ "main", "develop" ]
 
 jobs:
-  snyk-go:
+  Snyk:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout app
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          path: app
-      - name: Checkout engine
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          repository: catnet-io/engine
-          path: engine
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Mock frontend dist
-        working-directory: app
         run: mkdir -p frontend/dist; echo "mock" > frontend/dist/index.html
       - name: Run Snyk to check Go vulnerabilities
         uses: snyk/actions/golang@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --file=app/go.mod
+          args: --file=go.mod
 
   snyk-frontend:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout app
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          path: app
-      - name: Checkout engine
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          repository: catnet-io/engine
-          path: engine
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: latest
       - name: Install dependencies
-        working-directory: app/frontend
+        working-directory: frontend
         run: bun install
       - name: Setup Snyk
         uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
       - name: Run Snyk to check Bun vulnerabilities
-        working-directory: app/frontend
+        working-directory: frontend
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: snyk test --file=package.json
