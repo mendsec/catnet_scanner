@@ -86,13 +86,13 @@ export function HistoryView({ onCompare }: { onCompare: (scanId: number) => void
                 <td><span className="status-dot status-alive"></span> {scan.alive_hosts}</td>
                 <td>{scan.total_hosts}</td>
                 <td style={{ display: 'flex', gap: '8px' }}>
-                  <button className="icon-btn" aria-label={`Diff scan #${scan.id}`} title="Compare against last scan" onClick={() => onCompare(scan.id)}>
+                  <button className="icon-btn" aria-label={`Diff scan #${scan.id}`} title="Compare against last scan" onClick={() => { onCompare(scan.id); }}>
                     <Play size={16} /> Diff
                   </button>
-                  <button className="icon-btn" aria-label={`Export scan #${scan.id}`} title="Export JSON" onClick={() => handleExport(scan.id)}>
+                  <button className="icon-btn" aria-label={`Export scan #${scan.id}`} title="Export JSON" onClick={() => { void handleExport(scan.id); }}>
                     <Download size={16} />
                   </button>
-                  <button className="icon-btn" aria-label={`Delete scan #${scan.id}`} style={{ color: 'var(--status-dead)' }} title="Delete" onClick={() => handleDelete(scan.id)}>
+                  <button className="icon-btn" aria-label={`Delete scan #${scan.id}`} style={{ color: 'var(--status-dead)' }} title="Delete" onClick={() => { void handleDelete(scan.id); }}>
                     <Trash2 size={16} />
                   </button>
                 </td>

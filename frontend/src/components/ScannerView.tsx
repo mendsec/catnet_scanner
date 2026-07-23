@@ -251,19 +251,19 @@ export function ScannerView() {
           <thead>
             <tr>
               <th>Status</th>
-              <th onClick={() => handleSort('hostname')} onKeyDown={(e) => handleSortKeyDown(e, 'hostname')} tabIndex={0}>
+              <th onClick={() => { handleSort('hostname'); }} onKeyDown={(e) => handleSortKeyDown(e, 'hostname')} tabIndex={0}>
                 Hostname {sortCol === 'hostname' && (sortAsc ? '▲' : '▼')}
               </th>
-              <th onClick={() => handleSort('ip')} onKeyDown={(e) => handleSortKeyDown(e, 'ip')} tabIndex={0}>
+              <th onClick={() => { handleSort('ip'); }} onKeyDown={(e) => handleSortKeyDown(e, 'ip')} tabIndex={0}>
                 IP {sortCol === 'ip' && (sortAsc ? '▲' : '▼')}
               </th>
-              <th onClick={() => handleSort('openPorts')} onKeyDown={(e) => handleSortKeyDown(e, 'openPorts')} tabIndex={0}>
+              <th onClick={() => { handleSort('openPorts'); }} onKeyDown={(e) => handleSortKeyDown(e, 'openPorts')} tabIndex={0}>
                 Ports {sortCol === 'openPorts' && (sortAsc ? '▲' : '▼')}
               </th>
-              <th onClick={() => handleSort('mac')} onKeyDown={(e) => handleSortKeyDown(e, 'mac')} tabIndex={0}>
+              <th onClick={() => { handleSort('mac'); }} onKeyDown={(e) => handleSortKeyDown(e, 'mac')} tabIndex={0}>
                 MAC {sortCol === 'mac' && (sortAsc ? '▲' : '▼')}
               </th>
-              <th onClick={() => handleSort('vendor')} onKeyDown={(e) => handleSortKeyDown(e, 'vendor')} tabIndex={0}>
+              <th onClick={() => { handleSort('vendor'); }} onKeyDown={(e) => handleSortKeyDown(e, 'vendor')} tabIndex={0}>
                 Vendor {sortCol === 'vendor' && (sortAsc ? '▲' : '▼')}
               </th>
             </tr>
@@ -272,7 +272,7 @@ export function ScannerView() {
             {sortedDevices.map((dev, i) => (
               <tr 
                 key={i} 
-                onClick={() => handleRowClick(dev)} 
+                onClick={() => { handleRowClick(dev); }} 
                 style={{ cursor: 'pointer', background: selectedDevice?.ip === dev.ip ? 'rgba(102, 252, 241, 0.15)' : undefined }}
               >
                 <td><span className={`status-dot ${dev.isAlive ? 'status-alive' : 'status-dead'}`} role="img" aria-label={dev.isAlive ? 'Device is online' : 'Device is offline'} title={dev.isAlive ? 'Online' : 'Offline'}></span></td>
@@ -300,7 +300,7 @@ export function ScannerView() {
           <>
             <div className="drawer-header">
               <span className="drawer-title">Host Details</span>
-              <button className="drawer-close" onClick={() => setSelectedDevice(null)} title="Close Panel">
+              <button className="drawer-close" onClick={() => { setSelectedDevice(null); }} title="Close Panel">
                 ✕
               </button>
             </div>
