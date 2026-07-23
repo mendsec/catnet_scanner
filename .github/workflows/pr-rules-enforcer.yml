@@ -44,21 +44,28 @@ jobs:
           # Fetch main branch to check commits differences
           git fetch origin main
           
+          # Configure allowed_signers for SSH signature verification on runner
+          mkdir -p ~/.ssh
+          touch ~/.ssh/allowed_signers
+          git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers
+          
           # Check signatures of all commits in the PR branch
           echo "Checking commits signature up to: $HEAD_SHA"
           
-          # git log lists all commits in the PR branch that are not in main
-          # %G? prints the signature verification status (N for no signature)
           HAS_UNSIGNED=0
           while read -r sha sig; do
             if [ -z "$sha" ]; then
               continue
             fi
-            if [ "$sig" = "N" ]; then
+            
+            # Check if commit object contains a gpgsig header (SSH or GPG signature)
+            HAS_GPGSIG=$(git cat-file -p "$sha" | grep -c "^gpgsig " || true)
+            
+            if [ "$sig" = "N" ] && [ "$HAS_GPGSIG" -eq 0 ]; then
               echo "::error::Commit $sha is NOT signed. All commits in a PR to main must be signed (GPG or SSH)."
               HAS_UNSIGNED=1
             else
-              echo "✓ Commit $sha has a signature (status: $sig)"
+              echo "✓ Commit $sha has a valid signature (sig: $sig, gpgsig: $HAS_GPGSIG)"
             fi
           done < <(git log origin/main..$HEAD_SHA --pretty=format:"%H %G?")
           
