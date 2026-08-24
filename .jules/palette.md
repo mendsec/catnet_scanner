@@ -9,3 +9,7 @@
 ## 2023-10-25 - Icon-only Buttons and Confirmation Dialogs for Destructive Actions
 **Learning:** Icon-only buttons (like those for Export or Delete actions) often lack programmatic descriptions, causing accessibility issues for screen readers. Destructive actions without a confirmation mechanism can lead to accidental data loss.
 **Action:** Consistently add `aria-label` attributes to icon-only buttons to convey their purpose programmatically. For destructive actions (like deleting a scan), implement an intermediate confirmation step (such as `window.confirm`) to ensure user intent.
+
+## 2023-10-25 - Tooltips on Disabled Buttons
+**Learning:** Native browser tooltips (`title` attributes) do not trigger when a user hovers over a button with the `disabled` attribute because `disabled` elements inherently have `pointer-events: none` applied by default in many contexts, preventing mouse events like hover from being detected.
+**Action:** When adding explanatory tooltips to disabled buttons (which is a good UX practice to explain *why* an action is disabled), ensure that `pointer-events: auto` is explicitly set in CSS for the disabled state of the element (e.g., `button:disabled { pointer-events: auto; }`).

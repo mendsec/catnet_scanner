@@ -38,6 +38,7 @@ function App() {
             className={`nav-btn ${activeTab === 'DIFF' ? 'active' : ''}`}
             onClick={() => setActiveTab('DIFF')}
             disabled={activeTab !== 'DIFF' && selectedScanId === null}
+            title={activeTab !== 'DIFF' && selectedScanId === null ? "Select a scan from History to compare" : "Compare Scans"}
           >
             <GitCompare size={20} /> Compare
           </button>

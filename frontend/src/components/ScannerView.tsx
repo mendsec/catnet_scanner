@@ -222,17 +222,17 @@ export function ScannerView() {
               aria-invalid={!isValidIpRange(ipRange) && ipRange !== '' ? 'true' : 'false'}
               style={{ borderColor: !isValidIpRange(ipRange) && ipRange !== '' ? 'var(--status-dead)' : undefined }}
             />
-            <button className="icon-btn" onClick={() => { void handleAutoDetect(); }} disabled={isScanning} title="Auto Detect Subnet" aria-label="Auto Detect Subnet">
+            <button className="icon-btn" onClick={() => { void handleAutoDetect(); }} disabled={isScanning} title={isScanning ? "Scan currently in progress" : "Auto Detect Subnet"} aria-label="Auto Detect Subnet">
               <Search size={16} />
             </button>
           </div>
-          <button className="cyber-btn" onClick={() => { void handleScan(); }} disabled={isScanning || !isValidIpRange(ipRange)}>
+          <button className="cyber-btn" onClick={() => { void handleScan(); }} disabled={isScanning || !isValidIpRange(ipRange)} title={isScanning ? "Scan currently in progress" : (!isValidIpRange(ipRange) ? "Enter a valid IP range" : "Start Scan")}>
             <Play size={18} /> {isScanning ? 'Scanning...' : 'Start'}
           </button>
-          <button className="cyber-btn danger" onClick={handleStop} disabled={!isScanning}>
+          <button className="cyber-btn danger" onClick={handleStop} disabled={!isScanning} title={!isScanning ? "No scan currently running" : "Stop Scan"}>
             <Square size={18} /> Stop
           </button>
-          <button className="cyber-btn" onClick={() => { void handleExport(); }} disabled={isScanning || devices.length === 0} style={{ borderColor: 'var(--text-muted)', color: 'var(--text-muted)' }}>
+          <button className="cyber-btn" onClick={() => { void handleExport(); }} disabled={isScanning || devices.length === 0} style={{ borderColor: 'var(--text-muted)', color: 'var(--text-muted)' }} title={isScanning ? "Wait for scan to finish to export" : (devices.length === 0 ? "No devices to export" : "Export Results")}>
             <Download size={18} /> Export
           </button>
         </div>

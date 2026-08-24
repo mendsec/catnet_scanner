@@ -146,7 +146,8 @@ body {
 }
 
 .cyber-btn:disabled,
-.icon-btn:disabled {
+.icon-btn:disabled,
+.nav-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: auto; /* Required to show tooltips on disabled buttons */
@@ -430,11 +431,6 @@ body {
   background: rgba(102, 252, 241, 0.2);
   color: var(--text-highlight);
   border-left: 3px solid var(--text-highlight);
-}
-
-.nav-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .main-content {
