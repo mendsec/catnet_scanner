@@ -18,7 +18,7 @@ jobs:
         go-version: ["1.26.x"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Go ${{ matrix.go-version }}
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -28,6 +28,17 @@ jobs:
 
       - name: Verify module integrity
         run: go mod verify
+
+      - name: Verify GitHub Action immutable SHA pinning
+        run: |
+          # Enforce Hard Rule #7: All GitHub Actions must use 40-character commit SHAs
+          UNPINNED=$(grep -rn -P "uses:\s*[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+@(?![a-f0-9]{40}\b)" .github/workflows/ || true)
+          if [ -n "$UNPINNED" ]; then
+            echo "ERROR: Unpinned GitHub Action(s) found in workflows. Hard Rule #7 mandates 40-character commit SHAs:"
+            echo "$UNPINNED"
+            exit 1
+          fi
+          echo "✓ All GitHub Action references are pinned with 40-character commit SHAs"
 
       - name: Check no local replace directives
         run: |
@@ -56,3 +67,22 @@ jobs:
 
       - name: Test (race detector)
         run: go test -race -coverprofile=coverage.out ./...
+
+  ci-ok:
+    name: CI OK
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: always()
+    steps:
+      - name: Verify all CI jobs succeeded
+        run: |
+          # Gate estável para branch protection: o nome deste job não depende da
+          # matrix, então não quebra quando a versão do Go mudar.
+          # 'if: always()' é obrigatório — sem ele o job seria "skipped" quando
+          # 'build' falha, e o GitHub trata skipped como satisfeito.
+          RESULT="${{ needs.build.result }}"
+          if [ "$RESULT" != "success" ]; then
+            echo "ERROR: job 'build' concluiu como '$RESULT'"
+            exit 1
+          fi
+          echo "✓ Todos os jobs de CI passaram"
